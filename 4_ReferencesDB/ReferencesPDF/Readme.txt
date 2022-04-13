@@ -1,7 +1,7 @@
-Arquivos já cadastrado no JabRef tem o formato:
+Files already registered in JabRef have the format:
 
-AutorAno.pdf (e.g., Luna2012)
+AuthorYear.pdf (e.g., Luna2012)
 
-Qualquer outro formato representa arquivos NAO cadastrados!
+Any other format represents NON-registered files
 
---- Bruno Luna 01.06.2021 --- 
+--- Bruno Luna 01.06.2021 (with translation on 14.04.2022)--- 
