@@ -1,0 +1,5 @@
+# Ignore everything in this directory,
+# as it is used by Ansys for writing results only
+*
+# Except this file
+!.gitignore
