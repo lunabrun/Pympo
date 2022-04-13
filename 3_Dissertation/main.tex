@@ -1,0 +1,200 @@
+% !TeX encoding=utf8
+% !TeX program = pdflatex
+% !TeX spellcheck = en-US
+% !BIB = biber
+
+%% Bug fixes and other packages to be loaded before the class
+\RequirePackage{fix-cm} % permit Computer Modern fonts at arbitrary sizes.
+
+% Silence package to supress expected/harmless warnings 
+% (see documentation sec. 3.1.3)
+\RequirePackage[debrief, save]{silence}
+\WarningFilter{latexfont}{Font}
+\WarningFilter{latexfont}{Some}
+\WarningFilter{hyphenat}{***}
+
+% Document Class (Koma Script) -----------------------------------------
+% Doc: scrguien.pdf
+\documentclass[%
+   %draft,     % draft mode (no images, layout errors shown)
+   draft=false,     % final mode 
+% Paper settings
+   paper=a4,% [Todo: add alternatives]
+   paper=portrait, % landscape
+   pagesize=auto, % driver
+% Base font size
+   fontsize=11pt,%
+% Koma script version
+   version=last, %
+% Global package options
+   english, % language (passed to babel and other packages)
+            % (ngerman, english, french, ...)
+]{scrbook} % Classes: scrartcl, scrreprt, scrbook
+
+% Must be loaded first!
+% Packages to allow more \write outputs
+\input{preamble/packages-SolutionsNoRoomForNewWrite.tex}
+% Packages required for the template
+\usepackage{atveryend} % must be loaded before etoolbox. (bugfix for pageslts)
+\usepackage{codesection}
+\usepackage{templatetools}
+
+% Encoding
+
+% Automatic selection of encoding
+% Insert chars for umlaut a and sz
+\usepackage{selinput}
+\SelectInputMappings{adieresis={ä},germandbls={ß},Euro={€}} 
+
+% Encoding of _files and directories_
+% (ensures that any file can be loaded without problems)
+\usepackage[%
+   extendedchars, encoding, multidot, space,
+   filenameencoding=latin1, % Windows XP, Vista, 7
+   % filenameencoding=utf8,   % Linux, OS X
+]{grffile}
+
+% Preamble
+
+% Select/load fonts
+\input{fonts/fonts.tex}
+%\input{fonts/font-commercial.tex}
+% Load packages
+\input{preamble/packages.tex}
+% Apply style settings
+\input{preamble/style.tex}
+% New commands / definitions (required by the template!)
+\input{preamble/commands.tex}
+
+% Configurations
+
+%%% Switch between colored links (web) and black links (print)
+\IfDefined{UseDefinition}{%
+  %\UseDefinition{Target}{Print}
+  \UseDefinition{Target}{Web}
+}
+
+\IfPackageLoaded{hyperref}{%
+% Set layout of PDF pages
+\hypersetup{pdfpagelayout=OneColumn}
+  % options:
+  %  SinglePage     Displays a single page; advancing flips the page
+  %  OneColumn      Displays the document in one column; continuous scrolling.
+  %  TwoColumnLeft  Displays the document in two columns, 
+  %                 odd-numbered pages to the left.
+  %  TwoColumnRight Displays the document in two columns, 
+  %                 odd-numbered pages to the right.
+  %  TwoPageLeft    Displays two pages, odd-numbered pages to the left 
+  %  TwoPageRight   Displays two pages, odd-numbered pages to the right 
+}% (end of hyperref)
+
+% Custom definitions
+
+\input{macros/newcommands.tex}
+
+% Execute necessary commands
+% (... if the according package is loaded or not)
+
+\input{preamble/makeCommands.tex}
+
+\listfiles % list all loaded files at end of document
+
+% Bibliography (now in preamble !)
+
+%%% bibtex file(s)
+% add multiple files with comma separation
+% biblatex requires files before document
+\IfPackageLoaded{biblatex}{
+  % add all .bib files:
+  \addbibresource{bib/BibtexDatabase.bib}
+  \addbibresource{bib/publications.bib}
+}
+
+% Definition of glossaries entries (before document!)
+% Glossary, acronym, symbols list and such
+\input{content/Z-GlossaryEntries.tex}
+
+% Document start
+\begin{document}
+
+% Configure page numbering - required for hyperref (not displayed)
+\pagenumbering{alph}\setcounter{page}{1}%
+\pagestyle{empty}
+
+% Title page
+\include{content/0-Title}
+\cleardoublepage
+
+% Abstract
+\include{content/0-Abstract} 
+\cleardoublepage
+
+\frontmatter
+\IfPackageLoaded{scrlayer-scrpage}{\pagestyle{scrheadings}}
+
+% Table of contents
+%
+% Add table of contents to pdf bookmarks
+\IfPackageLoaded{hyperref}{\pdfbookmark[1]{\contentsname}{toc}}
+\tableofcontents
+
+\IfPackagesLoaded{glossaries,longtable,tabu}{%  
+  \clearpage
+  % print out acronym list   
+  \IfGlossariesStyleDefined{longtabuFancyHeader}%
+   {\printglossary[type=\acronymtype,style=longtabuFancyHeader]}%
+  % print out symbol list 
+  \IfGlossariesStyleDefined{longtabuFancyHeader}%
+   {\printglossary[type=symbolslist,style=longtabuFancyHeader]}%
+  % print out glossary
+  \printglossary[style=altlist]
+}
+
+% Main content
+\mainmatter
+
+\include{content/0-Introduction}
+\include{content/0-LiteratureReview}
+\include{content/1-MaterialsAndMethods}
+\include{content/2-Results}
+\include{content/3-Discussion}
+\include{content/4-SummaryAndOutlook}
+
+% Bibliography
+% (must be placed _before_ appendix)
+\IfPackageLoaded{biblatex}{
+  \cleardoublepage
+  \IfDefined{phantomsection}{\phantomsection}\label{sec:bibliography}
+  \printbibliography[%
+    heading=bibintoc, % (bibintoc, bibnumbered)
+  ]	
+}
+
+% List of figures and tables
+\cleardoublepage\IfDefined{phantomsection}{\phantomsection}\label{sec:lof}
+\listoffigures
+\cleardoublepage\IfDefined{phantomsection}{\phantomsection}\label{sec:lot}
+\listoftables
+
+% List of listings
+% _Remove_ if no listing with caption is defined
+\IfDefined{lstlistoflistings}{\cleardoublepage\lstlistoflistings}
+
+% Appendix
+\cleardoublepage\IfDefined{phantomsection}{\phantomsection}
+\appendix
+% Add `Appendix` to TOC
+\addcontentsline{toc}{part}{\appendixname}
+% must be _input_, otherwise the TOC entry is at the wrong place
+\input{content/Z-Appendix.tex}
+
+% Backmatter
+\input{content/Z-Publications.tex}
+\input{content/Z-CV.tex}
+\input{content/Z-Thanks.tex}
+\input{content/Z-Declaration.tex}
+
+% Add todo list (remove for final document!)
+% \input{content/Z-Todo.tex}
+
+\end{document}

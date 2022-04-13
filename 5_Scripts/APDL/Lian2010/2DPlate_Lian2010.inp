@@ -1,0 +1,241 @@
+!===============================================================================
+! PROGRAM:          2DPlate_Lian2010
+!
+! PROJEKT:          REMODELING: Iterative adaptation of local material
+!                   properties to local mechanical environment.
+! TASK:             2D model of a plate with a linear varying force on top
+!                   with initially constant material properties undergoes an
+!                   iterative change of element material properties similar
+!                   to bone remodeling.  The changing rate is modeled dependent 
+!                   on the local strain energy density as per Lian2010 
+!                   3 showed algorithms.
+!					Remodeling script based on Simon, Wieland (Uni Ulm, 2011)
+!					Paramters taken from papers Lian2010, Weinans1992, Mullender1993
+! AUTHOR:           Bruno Luna
+! LAST CHANGES:     23.03.2022
+!
+! COMPUTER:         MHH PC
+! OPERATING SYSTEM: Windows
+! ANSYS Version:    License: Mechanical Enterprise 2022 R1
+!
+! CALL:             /INPUT,2DPlate_Lian2010.inp
+!
+!===============================================================================
+ 
+!=== Initialization
+FINISH              ! Stops all modules (preprocessor, solution, postprocessor)
+/CLEAR              ! Start a new analysis, delete the old database (file.db)
+ 
+/PLOPTS,INFO,AUTO ! Good old contour labeling style
+  
+!===============================================================================
+!  Parameters (in SI: m, N, kg, etc.)
+!===============================================================================
+
+!--- Program control
+nIter    =     200        	! Number of iterations for material remodeling
+
+!--- Geometry parameters
+Length   =     1        	! Length (x) of plate (m)
+Height   =     1        	! Height (y) of plate (m)
+Thickn   =     1  		      	! Thickness of plate (m)
+ 
+Meshrefine =     2	    	! Global mesh refinement level (1(fine) ... 10(rough))
+ 
+!--- Load paramters
+DistForce    =  10/Thickn   ! Load (Force, vertical) (N/m)
+
+
+!--- Initial material parameters
+Density_ini = 0.8			! Initial density of the plate material (bone) (kg*m^-3)
+Poiss_ini	= 0.3       	! Initial Poisson's ratio of the plates material (bone)
+
+!--- Parameters for Currey1988 Young's modulus to density function
+cC	= 100	! Constant in Currey's function (Pa/((kg*m^-3)^2))
+gC = 2		! Constant in Currey's function (adim)
+Young_ini = cC*(Density_ini**gC) ! Initial Young's modulus of the plate material (bone)
+
+!--- Remodeling function parameters
+Setpoint	= 0.25			! Setpoint for Strain Energy Density (SED) (J/kg)
+Epsilon		= 0*Setpoint/10	! "Lazy Zone" breadth (threshold)
+ResorpFac	= 1				! Slope of the bone resorption function
+FormFac		= ResorpFac		! Slope of the bone formation function
+Limit_Res	= Setpoint - Epsilon ! Bottom limit to start remodeling
+Limit_For	= Setpoint + Epsilon ! Top limit to start remodeling
+Rho_min		= .010	! Minimal allowed density
+Rho_max		= 1.740	! Maximum allowed density
+
+!===============================================================================
+! A. Preprocessor (Setting up the model)
+!===============================================================================
+/PREP7                       ! Switch to the preprocessor modul
+  
+!=== Build the geometry by means of bottom-up method
+ 
+!--- Create plate
+K,1,    0.0,    0.0, 0.0     ! Define keypoint via its coordinates x, y, z
+K,2, Length,    0.0, 0.0     ! Define keypoint via its coordinates x, y, z
+K,3, Length, Height, 0.0     ! Define keypoint via its coordinates x, y, z
+K,4,    0.0, Height, 0.0     ! Define keypoint via its coordinates x, y, z
+LSTR,1,2                     ! Connect keypoints 1 and 2 to create line 1
+LSTR,2,3                     ! Connect keypoints to create a line
+LSTR,3,4                     ! Connect keypoints to create a line
+LSTR,4,1                     ! Connect keypoints to create a line
+AL,ALL                       ! Create area by all selected lines (1, 2, 3, 4)
+
+ALLSEL                       ! Select everything
+APLOT                        ! Plot areas
+
+!=== Meshing
+ET,1,PLANE182                ! Define the local element type 1 as a PLANE182 element
+KEYOPT,1,1,2                 ! Sets key option 1 (of elem type 1) to 2 (enhanc. strain formul.)
+KEYOPT,1,3,0                 ! Sets key option 3 (of elem type 1) to 3 (plane stress w/ thickn)
+!--- Define real constants
+!R,1,Thickn              	 ! Set thicknessess of the plate in "real set" no. 1
+
+SMRTSIZE,Meshrefine          ! Global mesh refinement level (1(fine) ... 10(rough))
+AMESH,ALL                    ! Meshing areas with this number
+EPLOT                        ! Plot elements
+*GET,nElem,ELEM,0,COUNT      ! Get number of elements
+
+!===============================================================================
+!=== Initial definition of material properties, one for each of the FE
+*DIM,AR_Rho,ARRAY,nElem    ! Create a field (vector)
+ALLSEL
+*DO,el,1,nElem               ! Loop over all elements
+   MP,EX,el,Young_ini        ! Assign Young modulus
+   MP,PRXY,el,Poiss_ini      ! Assign Poisson number
+   EMODIF,el,MAT,el          ! Assign material type el to element el
+   AR_Rho(el) = Density_ini	 ! Initial density for all elements
+*ENDDO
+
+!=== Apply Load and Boundary Conditions
+!--- Displacement boundary conditions
+NSEL,S,LOC,Y,0.0             ! Select all nodes at y = 0 (bottom side)
+D,ALL,UY,0.0                 ! Set displacement uy to zero for selected nodes
+ALLSEL                       ! Select all entities
+
+NSEL,S,LOC,Y,0.0             ! Select all nodes at y = 0 (bottom side)
+NSEL,R,LOC,X,0.0			 ! From previous selected nodes, get bottom left corner (x=0,y=0)
+D,ALL,UY,0.0                 ! Set displacement uy to zero for selected nodes
+D,ALL,UX,0.0                 ! Set displacement ux to zero for selected node
+ALLSEL                       ! Select all entities
+
+!--- Applying the load
+SFGRAD,PRES,0,X,0.0,-DistForce/Length	! Distributed force definition (linear gradient)
+NSEL,S,LOC,Y,Height						! Select location for application of linear varying force
+SF,ALL,PRES,DistForce					! Application of force
+SFGRAD									! "Turn off" SFGRAD
+ALLSEL									! Select all entries
+
+! /SOLU
+! ANTYPE,0
+! !NLGEOM,ON
+! SOLVE
+
+! /POST1
+! SET,LAST
+! !PLESOL,S,EQV
+! PLNSOL,U,Y
+
+! /EOF
+
+!===============================================================================
+!=== Arrays creation for element related fields
+*DIM,AR_ActVal,ARRAY,nElem		! Create a field (vector)
+*DIM,AR_EMod,ARRAY,nElem        ! Create a field (vector)
+*DIM,AR_DeltaRho,ARRAY,nElem    ! Create a field (vector)
+ 
+!===============================================================================
+! B. START REMODELING LOOP
+!===============================================================================
+*DO,iter,1,nIter				! Loop over remodeling steps
+   !============================================================================
+   !====== Solution
+   /SOLU                        ! Switch to the solution module
+   ANTYPE,0						! Select the static analysis type
+   !NLGEOM,on					! Allow large deformation/rotation		
+   SOLVE                        ! Solve current load step
+   !============================================================================
+   !====== Postprocessor
+   /POST1                       ! Switch to the postprocessor module
+   SET, LAST                    ! Read results from last step
+   !============================================================================
+   !=== Read Strain Energy Density (SED)
+   ETABLE,et_SED,SEND,ELASTIC         		! Save element-wise SED result in E-Table
+   *DO,el,1,nElem                     		! Loop over all elements
+      *GET,AR_ActVal(el),ELEM,el,ETAB,et_SED   ! ... and read element result
+   *ENDDO
+ 
+   !============================================================================
+   !=== Output intermediate result
+   /TITLE,'Strain-Energy-Density (SED) Schritt = %iter%'
+   !/DSCALE,1,1.0
+   !/CONTOUR,,,0,,2*Limit_For
+   PLESOL, SEND, ELASTIC
+
+   !=== Prepare remodeling (i.e., calculate dp/dt)
+   *DO,el,1,nElem            ! Loop over all elements
+		Stimulus = AR_ActVal(el)/AR_Rho(el)
+      *IF,Stimulus,LT,Limit_Res,THEN
+         AR_DeltaRho(el) = ResorpFac*(Stimulus - Limit_Res)
+      *ELSEIF,Stimulus,GT,Limit_For,THEN
+         AR_DeltaRho(el) = FormFac*(Stimulus - Limit_For)
+      *ELSE
+         AR_DeltaRho(el) = 0.0
+      *ENDIF
+	  AR_Rho(el) = AR_Rho(el) + AR_DeltaRho(el)
+	  *IF,AR_Rho(el),LE,Rho_min,THEN    	! Limit resorption
+		 AR_Rho(el) = Rho_min
+      *ELSEIF,AR_Rho(el),GE,Rho_max,THEN ! Limit formation
+         AR_Rho(el) = Rho_max
+      *ENDIF	  
+   *ENDDO
+ 
+   !============================================================================
+   !=== Remodeling, actually change material
+   /PREP7                				! Switch to Preprocor
+   *DO,el,1,nElem            			! Loop over all elements
+      *GET,Mat_no,MAT,el        		! Get material number of each elem
+      *GET,AR_EMod(el),EX,Mat_no        ! Get Young's modulus of that material number
+      AR_EMod(el) = cC*(AR_Rho(el)**gC) ! Change Young's modulus 
+      MP,EX,el,AR_EMod(el)              ! Set new Young's modulus to element
+   *ENDDO
+*ENDDO 
+!===============================================================================
+! END OF LOOP
+!===============================================================================
+
+!===============================================================================
+! C. POSTPROCESSOR
+!===============================================================================
+/POST1							! Switch to Postprocesser
+
+!=============================================================================== 
+!=== Plot of Young's modulus
+!--- Create element table; initially with EPTOX, to be overwritten later
+ETABLE,et_Emod,EPTO,X			! for visualization of Young's modulus
+
+!--- Fill element table with Young's modulus (including loop over all elements)
+!*vput,AR_EMod(1),ELEM,1,ETAB,et_Emod,0
+!--- Fill element table with density (including loop over all elements)
+*vput,AR_Rho(1),ELEM,1,ETAB,et_Emod,0
+
+!--- Plot
+!/CONTOUR,,,Young_min,,Young_max
+!/TITLE,'Young modulus distribution after iteration = %iter%'
+/CONTOUR,,,Rho_min,,Rho_max
+/TITLE,'Density distribution after iteration = %iter%'
+PLETAB,et_Emod,NOAVG
+
+! !=== Plot of SED
+! /TITLE,'Strain Energy Density (SED) iteration = %iter%'
+! /DSCALE,1,1.0
+! /CONTOUR,,,0,,2*Limit_For
+! PLESOL,SEND,ELASTIC
+ 
+!===============================================================================
+! END LABEL
+!===============================================================================
+
+:ENDSCRIPT
