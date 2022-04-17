@@ -1290,18 +1290,10 @@ Main insight/idea based on this paper would be to calculate the Kt via FEA (afte
   number       = {6},
   pages        = {1365--1373},
   volume       = {41},
-  comment      = {Very basic paper with some simple results for a simplified case.
-Uses an approach similar to Weinans92, i.e., Lazy Zone, SED Stimulus, Cowins rho to E-modul convertion, run until convergence to homeostasis, all materials linear and isotropic.
-
-In any case, we could also have this kind of paper as a first step (with similar examples!)},
   file         = {:Chou2008.pdf:PDF},
   groups       = {Bone Remodeling, FEM},
-  printed      = {printed},
-  priority     = {prio2},
   publisher    = {Elsevier {BV}},
-  ranking      = {rank3},
-  readstatus   = {read},
-  relevance    = {relevant},
+  readstatus   = {skimmed},
 }
 
 @PhdThesis{Chou2012,

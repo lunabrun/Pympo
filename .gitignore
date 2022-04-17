@@ -1,5 +1,7 @@
 # Custom ignores by B.Luna
 6_Ansys/
+_noGit/
+.vscode/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
