@@ -15,7 +15,6 @@ def create_2d_plate(mapdl, inp):
     inp: input module file
         Parameter list containing all input variables
     """
-
     # Build the geometry - Create plate
     # Define keypoint via their coordinates x, y, z
     mapdl.k(1, 0.0, 0.0, 0.0)
