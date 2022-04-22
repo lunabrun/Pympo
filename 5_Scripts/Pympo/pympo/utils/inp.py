@@ -29,6 +29,9 @@ young_ini = CC * (
     rho_ini**GC
 )  # Initial Young's modulus of the plate material (bone)
 
+# Remodeling algorithm
+alg_type = 1
+
 # Remodeling function parameters
 setpoint = 0.25  # Setpoint for Strain Energy Density (SED) (J/kg)
 epsilon = 0 * setpoint / 10  # 'Lazy Zone' breadth (threshold)

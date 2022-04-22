@@ -39,7 +39,7 @@ nelem, rho = mesh.ini_rho(mapdl, inp)
 mapdl = bc.create_bc_weinans92(mapdl, inp)
 
 # Remodel material
-mapdl, rho, young = remodel.remodel_weinans92(mapdl, inp, nelem, rho)
+mapdl, rho, young = remodel.huiskes_methods(mapdl, inp, nelem, rho)
 
 # Finish mapdl
 mapdl.run(":ENDSCRIPT")

@@ -14,6 +14,7 @@ def create_2d_mesh(mapdl, inp):
     ----------
     mapdl: pyMAPDL object
         Main object containing ansys interface object
+
     inp: input module file
         Parameter list containing all input variables
     """
@@ -40,6 +41,7 @@ def ini_rho(mapdl, inp):
     ----------
     mapdl: pyMAPDL object
         Main object containing ansys interface object
+
     inp: input module file
         Parameter list containing all input variables
     """

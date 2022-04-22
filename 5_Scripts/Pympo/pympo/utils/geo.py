@@ -12,6 +12,7 @@ def create_2d_plate(mapdl, inp):
     ----------
     mapdl: pyMAPDL object
         Main object containing ansys interface object
+
     inp: input module file
         Parameter list containing all input variables
     """

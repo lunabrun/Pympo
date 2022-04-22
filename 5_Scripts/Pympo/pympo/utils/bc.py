@@ -12,6 +12,7 @@ def create_bc_weinans92(mapdl, inp):
     ----------
     mapdl: pyMAPDL object
         Main object containing ansys interface object
+
     inp: input module file
         Parameter list containing all input variables
     """
