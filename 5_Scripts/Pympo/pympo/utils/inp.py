@@ -29,7 +29,7 @@ young_ini = CC * (
     rho_ini**GC
 )  # Initial Young's modulus of the plate material (bone)
 
-# Remodeling algorithm
+# Remodeling algorithm (1 = Weinans92)
 alg_type = 1
 
 # Remodeling function parameters
