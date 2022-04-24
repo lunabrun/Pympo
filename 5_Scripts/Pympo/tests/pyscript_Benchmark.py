@@ -2,7 +2,9 @@
 import os
 from ansys.mapdl.core import launch_mapdl
 
-mapdl = launch_mapdl(run_location=os.getcwd(), loglevel="WARNING", print_com=True)
+mapdl = launch_mapdl(
+    run_location=os.getcwd(), loglevel="WARNING", print_com=True
+)
 
 # ===============================================================================
 # PROGRAM:          2DPlate_Lian2010
@@ -40,7 +42,9 @@ mapdl.run("/PLOPTS,INFO,AUTO ")  # Good old contour labeling style
 # ===============================================================================
 
 # --- Program control
-mapdl.run("nIter    =     50        	")  # Number of iterations for material remodeling
+mapdl.run(
+    "nIter    =     50        	"
+)  # Number of iterations for material remodeling
 
 # --- Geometry parameters
 mapdl.run("Length   =     1        	")  # Length (x) of plate (m)
@@ -69,11 +73,15 @@ mapdl.run(
 )  # Initial Young's modulus of the plate material (bone)
 
 # --- Remodeling function parameters
-mapdl.run("Setpoint	= 0.25			")  # Setpoint for Strain Energy Density (SED) (J/kg)
+mapdl.run(
+    "Setpoint	= 0.25			"
+)  # Setpoint for Strain Energy Density (SED) (J/kg)
 mapdl.run("Epsilon		= 0*Setpoint/10	")  # 'Lazy Zone' breadth (threshold)
 mapdl.run("ResorpFac	= 1				")  # Slope of the bone resorption function
 mapdl.run("FormFac		= ResorpFac		")  # Slope of the bone formation function
-mapdl.run("Limit_Res	= Setpoint - Epsilon ")  # Bottom limit to start remodeling
+mapdl.run(
+    "Limit_Res	= Setpoint - Epsilon "
+)  # Bottom limit to start remodeling
 mapdl.run("Limit_For	= Setpoint + Epsilon ")  # Top limit to start remodeling
 mapdl.run("Rho_min		= .010	")  # Minimal allowed density
 mapdl.run("Rho_max		= 1.740	")  # Maximum allowed density
@@ -87,7 +95,9 @@ mapdl.prep7()  # Switch to the preprocessor modul
 # --- Create plate
 mapdl.k(1, 0.0, 0.0, 0.0)  # Define keypoint via its coordinates x, y, z
 mapdl.k(2, "Length", 0.0, 0.0)  # Define keypoint via its coordinates x, y, z
-mapdl.k(3, "Length", "Height", 0.0)  # Define keypoint via its coordinates x, y, z
+mapdl.k(
+    3, "Length", "Height", 0.0
+)  # Define keypoint via its coordinates x, y, z
 mapdl.k(4, 0.0, "Height", 0.0)  # Define keypoint via its coordinates x, y, z
 mapdl.lstr(1, 2)  # Connect keypoints 1 and 2 to create line 1
 mapdl.lstr(2, 3)  # Connect keypoints to create a line
@@ -98,7 +108,9 @@ mapdl.allsel()  # Select everything
 mapdl.aplot()  # Plot areas
 
 # === Meshing
-mapdl.et(1, "PLANE182")  # Define the local element type 1 as a PLANE182 element
+mapdl.et(
+    1, "PLANE182"
+)  # Define the local element type 1 as a PLANE182 element
 mapdl.keyopt(
     1, 1, 2
 )  # Sets key option 1 (of elem type 1) to 2 (enhanc. strain formul.)
@@ -108,7 +120,9 @@ mapdl.keyopt(
 
 # --- Define real constants
 # R,1,Thickn              	  Set thicknessess of the plate in 'real set' no. 1
-mapdl.smrtsize("Meshrefine")  # Global mesh refinement level (1(fine) ... 10(rough))
+mapdl.smrtsize(
+    "Meshrefine"
+)  # Global mesh refinement level (1(fine) ... 10(rough))
 mapdl.amesh("ALL")  # Meshing areas with this number
 mapdl.eplot()  # Plot elements
 mapdl.get("nElem", "ELEM", 0, "COUNT")  # Get number of elements
@@ -172,12 +186,18 @@ with mapdl.non_interactive:
     mapdl.solve()  # Solve current load step
     # ============================================================================
     # ====== Postprocessor
-    mapdl.run("/POST1                       ")  # Switch to the postprocessor module
+    mapdl.run(
+        "/POST1                       "
+    )  # Switch to the postprocessor module
     mapdl.set("LAST")  # Read results from last step
     # ============================================================================
     # === Read Strain Energy Density (SED)
-    mapdl.etable("et_SED", "SEND", "ELASTIC")  # Save element-wise SED result in E-Table
-    mapdl.run("*DO,el,1,nElem                     		")  # Loop over all elements
+    mapdl.etable(
+        "et_SED", "SEND", "ELASTIC"
+    )  # Save element-wise SED result in E-Table
+    mapdl.run(
+        "*DO,el,1,nElem                     		"
+    )  # Loop over all elements
     mapdl.run(
         "*GET,AR_ActVal(el),ELEM,el,ETAB,et_SED   "
     )  # ... and read element result
@@ -212,7 +232,9 @@ with mapdl.non_interactive:
 
     mapdl.prep7()  # Switch to Preprocor
     mapdl.run("*DO,el,1,nElem            			")  # Loop over all elements
-    mapdl.run("*GET,Mat_no,MAT,el        		")  # Get material number of each elem
+    mapdl.run(
+        "*GET,Mat_no,MAT,el        		"
+    )  # Get material number of each elem
     mapdl.run(
         "*GET,AR_EMod(el),EX,Mat_no        "
     )  # Get Young's modulus of that material number
@@ -233,7 +255,7 @@ mapdl.run("/POST1							")  # Switch to Postprocesser
 # === Plot of Young's modulus
 # --- Create element table; initially with EPTOX, to be overwritten later
 mapdl.etable("et_Emod", "EPTO", "X")  # for visualization of Young's modulus
-# --- Fill element table with Young's modulus (including loop over all elements)
+# --- Fill element table with Young modulus (including loop over all elements)
 # *vput,AR_EMod(1),ELEM,1,ETAB,et_Emod,0
 # --- Fill element table with density (including loop over all elements)
 mapdl.run("*vput,AR_Rho(1),ELEM,1,ETAB,et_Emod,0")
