@@ -97,13 +97,7 @@ def calc_new_rho(inp, rho, sed, nelem):
 
     for el in range(nelem):
         stimulus[el] = calc_stimulus(rho[el], sed[el])
-
-        # Choose local or non-local version of method
-        if inp.alg_type == 1:
-            delta_rho = calc_delta_rho_local(inp, stimulus[el])
-        elif inp.alg_type == 2:
-            delta_rho = calc_delta_rho_nonlocal(inp, stimulus)
-
+        delta_rho = calc_delta_rho_local(inp, stimulus[el])
         rho[el] = rho[el] + delta_rho[el]
 
         # Limit resorption and formation
@@ -125,6 +119,11 @@ def calc_stimulus(rho, sed):
 
     sed: float
         Element strain-energy-density
+
+    Returns
+    -------
+    stimulus: float
+        Element stimulus for comparison with reference value
     """
 
     stimulus = sed / rho
@@ -138,7 +137,7 @@ def calc_delta_rho_local(inp, stimulus):
     It is equal to d_rho/dt, if time step is included in inp.resorp- or
     inp-form_fac. It considers contribution only from the element/local data.
 
-    See Weinans92 paper for details.
+    See Weinans1992 paper for details.
 
     Parameters
     ----------
@@ -147,6 +146,11 @@ def calc_delta_rho_local(inp, stimulus):
 
     stimulus: float
         Element stimulus for density change
+
+    Returns
+    -------
+    delta_rho: float
+        Difference in density to be added to current value
     """
 
     # No variation in "lazy-zone"
@@ -156,33 +160,6 @@ def calc_delta_rho_local(inp, stimulus):
         delta_rho = inp.resorp_fac * (stimulus - inp.limit_res)
     elif stimulus > inp.limit_for:
         delta_rho = inp.form_fac * (stimulus - inp.limit_for)
-
-    return delta_rho
-
-
-def calc_delta_rho_nonlocal(inp, stimulus):
-    """Calculate delta rho based on non-local method
-
-    It is equal to d_rho/dt, if time step is included in inp.resorp- or
-    inp-form_fac. It considers contributions from all elements.
-
-    See Mullender93 paper for details.
-
-    Parameters
-    ----------
-    inp: input module file
-        Parameter list containing all input variables
-
-    stimulus: float vector
-        Vector of element-wise stimulus for density change
-    """
-
-    delta_rho = 0.0
-    # TODO: Implement function as per Mullender93
-    # for all el, for all el: distance(1,2)=xyz(1)-xyz(2)
-    # f(1,2) = exp(-distance(1,2)/D)
-    # phi = for all el += (f(distance(1,2))*(stimulus(el) - k))
-    # delta_rho = inp.tau * phi(distance, stimulus)
 
     return delta_rho
 
@@ -206,6 +183,8 @@ def update_material(mapdl, inp, rho, nelem):
     """
 
     young = np.zeros(nelem)
+    CC = inp.CC
+    GC = inp.GC
     mapdl.prep7()
 
     for el in range(nelem):
@@ -216,24 +195,32 @@ def update_material(mapdl, inp, rho, nelem):
         young[el] = mapdl.get("young", "EX", mat_no)
 
         # Update based on density
-        young[el] = calc_young(inp, rho[el])
+        young[el] = calc_young(rho[el], CC, GC)
         mapdl.mp("EX", el_ansys, young[el])
 
     return young
 
 
-def calc_young(inp, rho):
-    """Calculate young modulus for element based on density
+def calc_young(rho, CC, GC):
+    """Calculate young modulus for based on density acc. to Currey1998
 
     Parameters
     ----------
-    inp: input module file
-        Parameter list containing all input variables
-
     rho: float
         Element density
+
+    CC: float
+        Linear constant in Currey's function
+
+    GC: float
+        Exponential constant in Currey's function
+
+    Returns
+    -------
+    young: float
+        Element young modulus
     """
 
-    young = inp.CC * (rho**inp.GC)
+    young = CC * (rho**GC)
 
     return young

@@ -25,12 +25,7 @@ poisson = 0.3  # Initial Poisson's ratio of the plates material (bone)
 # Parameters for Currey1988 Young's modulus to density function
 CC = 100  # Constant in Currey's function (Pa/((kg*m^-3)^2))
 GC = 2  # Constant in Currey's function (adim)
-young_ini = CC * (
-    rho_ini**GC
-)  # Initial Young's modulus of the plate material (bone)
-
-# Remodeling algorithm (1 = Weinans92)
-alg_type = 1
+young_ini = CC * (rho_ini**GC)  # Initial Young's modulus of the bone
 
 # Remodeling function parameters
 setpoint = 0.25  # Setpoint for Strain Energy Density (SED) (J/kg)
