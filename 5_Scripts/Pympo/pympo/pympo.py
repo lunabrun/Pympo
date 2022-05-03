@@ -13,12 +13,15 @@ Output from the program to the "ansys_tmp" folder.
 
 import os
 from ansys.mapdl.core import launch_mapdl
+
 from remodeling import remodel
 from utils import inp, geo, mesh, bc
 
 # Initialization - Stops, clear and delete any running module/analysis
 mapdl = launch_mapdl(
-    run_location=os.getcwd() + "/ansys_tmp", loglevel="WARNING", print_com=True
+    run_location=os.getcwd() + "/pympo/ansys_tmp",
+    loglevel="WARNING",
+    print_com=True,
 )
 mapdl.finish()
 mapdl.run("/CLEAR")
