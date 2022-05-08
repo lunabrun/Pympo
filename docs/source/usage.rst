@@ -9,11 +9,11 @@ Usage
 Installation
 ------------
 
-To use Pympo, first install it using pip:
+To use Pympo, first download it from GitHub, go to its folder, then install it using poetry:
 
 .. code-block:: console
 
-   (.venv) $ pip install pympo
+   (.venv) $ poetry install
 
 .. note::
    **Hey!**, it is not working yet, it is just for Sphinx training purposes :)
