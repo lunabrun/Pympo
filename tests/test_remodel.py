@@ -30,23 +30,41 @@ class Inp:
     pass
 
 
-inp = Inp()
-inp.K = 1.0
-inp.s = 0.0
-inp.f_fac = 1.0
-inp.r_fac = 1.0
-inp.rho_min = 0.01
-inp.rho_max = 1.740
+# Different input structures for tests
+inp1 = Inp()
+inp1.K = 1.0
+inp1.s = 0.0
+inp1.f_fac = 1.0
+inp1.r_fac = 1.0
+inp1.rho_min = 0.01
+inp1.rho_max = 2.0
 
-RHO_VEC = [1.0, 1.0, 1.0]
-SED_VEC = [1.0, 1.0, 1.0]
-NELEM = 3
+inp2 = Inp()
+inp2.K = inp1.K
+inp2.s = 0.5
+inp2.f_fac = inp1.f_fac
+inp2.r_fac = inp1.r_fac
+inp2.rho_min = inp1.rho_min
+inp2.rho_max = inp1.rho_max
 
 
 @pytest.mark.parametrize(
     "inp, rho, sed, nelem, rho_new",
     [
-        (inp, RHO_VEC, SED_VEC, NELEM, pytest.approx([1, 1, 2])),
+        (inp1, [1.0], [1.0], 1, pytest.approx([1.0])),
+        (inp1, [2.0], [0.5], 1, pytest.approx([1.25])),
+        (inp1, [-2.0], [0.5], 1, pytest.approx([0.01])),
+        (inp1, [2.0], [-0.5], 1, pytest.approx([0.75])),
+        (
+            inp1,
+            [-2.0, 2.0, 1.3],
+            [0.5, -0.5, 1.0],
+            3,
+            pytest.approx([0.01, 0.75, 1.06923]),
+        ),
+        (inp1, [100.0], [5], 1, pytest.approx([inp1.rho_max])),
+        (inp1, [0.005], [0.005], 1, pytest.approx([inp1.rho_min])),
+        (inp2, [2.0], [0.5], 1, pytest.approx([1.25])),
     ],
 )
 def test_calc_new_rho_regular(inp, rho, sed, nelem, rho_new):
