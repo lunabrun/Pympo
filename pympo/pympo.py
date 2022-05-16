@@ -24,7 +24,7 @@ mapdl = launch_mapdl(
     print_com=True,
 )
 mapdl.finish()
-mapdl.run("/CLEAR")
+mapdl.clear()
 
 # Preprocessor (Setting up the model)
 mapdl.prep7()

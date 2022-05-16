@@ -8,6 +8,7 @@ import pytest
 from pympo.remodeling.remodel import calc_new_rho
 from pympo.remodeling.remodel import calc_stimulus
 from pympo.remodeling.remodel import calc_delta_rho_local
+from pympo.remodeling.remodel import update_material
 from pympo.remodeling.remodel import calc_young
 from pympo.remodeling.remodel import check_if_number
 
@@ -47,6 +48,14 @@ inp2.r_fac = inp1.r_fac
 inp2.rho_min = inp1.rho_min
 inp2.rho_max = inp1.rho_max
 
+inp3 = Inp()
+inp3.K = inp1.K
+inp3.s = "1"
+inp3.f_fac = inp1.f_fac
+inp3.r_fac = inp1.r_fac
+inp3.rho_min = inp1.rho_min
+inp3.rho_max = inp1.rho_max
+
 
 @pytest.mark.parametrize(
     "inp, rho, sed, nelem, rho_new",
@@ -64,11 +73,27 @@ inp2.rho_max = inp1.rho_max
         ),
         (inp1, [100.0], [5], 1, pytest.approx([inp1.rho_max])),
         (inp1, [0.005], [0.005], 1, pytest.approx([inp1.rho_min])),
-        (inp2, [2.0], [0.5], 1, pytest.approx([1.25])),
+        (inp2, [2.0], [0.5], 1, pytest.approx([1.75])),
+        (inp2, [2.0], [4.0], 1, pytest.approx([2.0])),
+        (inp2, [1.0], [1.75], 1, pytest.approx([1.25])),
     ],
 )
 def test_calc_new_rho_regular(inp, rho, sed, nelem, rho_new):
     assert calc_new_rho(inp, rho, sed, nelem) == rho_new
+
+
+@pytest.mark.parametrize(
+    "inp, rho, sed, nelem, exception",
+    [
+        (inp1, ["a"], [1.0], 1, TypeError),
+        (inp1, [1.0], ["a"], 1, TypeError),
+        (inp1, [1.0], [1.0], "a", TypeError),
+        (inp3, [1.0], [1.0], 1, TypeError),
+    ],
+)
+def test_calc_new_rho_exception(inp, rho, sed, nelem, exception):
+    with pytest.raises(exception):
+        calc_new_rho(inp, rho, sed, nelem)
 
 
 @pytest.mark.parametrize(
@@ -125,6 +150,16 @@ def test_calc_delta_rho_local_exception(
 ):
     with pytest.raises(exception):
         calc_delta_rho_local(stimulus, K, s, f_fac, r_fac)
+
+
+@pytest.mark.parametrize(
+    "mapdl, inp, rho, nelem, young",
+    [
+        (mapdl, inp1, [1.0], 1, pytest.approx([1.0])),
+    ],
+)
+def test_update_material_regular(mapdl, inp, rho, nelem, young):
+    assert update_material(mapdl, inp, rho, nelem) == young
 
 
 @pytest.mark.parametrize(

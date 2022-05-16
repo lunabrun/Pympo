@@ -46,7 +46,7 @@ def ini_rho(mapdl, inp):
         Parameter list containing all input variables
     """
     # Vectors creation for element related fields
-    nelem = int(mapdl.get("nElem", "ELEM", 0, "COUNT"))
+    nelem = mapdl.mesh.n_elem
     rho = np.zeros(nelem)
 
     # Initialization of density for each element

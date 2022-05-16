@@ -21,7 +21,7 @@ def huiskes_methods(mapdl, inp, nelem, rho):
 
     # Loop over remodeling steps
     for i in range(1, inp.niter + 1):
-        status = "Remodeling iteration " + str(i) + " of " + str(inp.niter + 1)
+        status = "Remodeling iteration " + str(i) + " of " + str(inp.niter)
         print(status)
 
         mapdl = solve_ansys(mapdl)
@@ -208,6 +208,11 @@ def update_material(mapdl, inp, rho, nelem):
 
     nelem: integer
         Number of elements in finite element mesh
+
+    Returns
+    -------
+    young: float vector
+        vector of element-wise young modulus
     """
 
     young = np.zeros(nelem)
