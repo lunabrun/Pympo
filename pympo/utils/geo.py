@@ -32,6 +32,5 @@ def create_2d_plate(mapdl, inp):
     # Create and plot area by all selected lines (1, 2, 3, 4)
     mapdl.al("ALL")
     mapdl.allsel()
-    mapdl.aplot()
 
     return mapdl

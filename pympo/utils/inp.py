@@ -7,7 +7,7 @@ Module to supply input variables to pympo program.
 # Parameters unit system: SI (m, N, kg, etc.). Always check and confirm this!
 
 # Program control
-niter = 2  # Number of iterations for material remodeling
+niter = 10  # Number of iterations for material remodeling
 
 # Geometry parameters
 length = 1.0  # Length (x) of plate (m)
@@ -29,7 +29,7 @@ young_ini = CC * (rho_ini**GC)  # Initial Young's modulus of the bone
 
 # Remodeling function parameters
 K = 0.25  # Setpoint for Strain Energy Density (SED) (J/kg)
-s = 0  # 'Lazy Zone' breadth (threshold)
+s = 0.0  # 'Lazy Zone' breadth (threshold)
 f_fac = 1.0  # Slope of the bone formation function
 r_fac = 1.0  # Slope of the bone resorption function
 rho_min = 0.01  # Minimal allowed density

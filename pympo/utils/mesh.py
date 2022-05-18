@@ -5,6 +5,7 @@ Module to input or create mesh for pympo program.
 """
 
 import numpy as np
+import time
 
 
 def create_2d_mesh(mapdl, inp):
@@ -29,7 +30,6 @@ def create_2d_mesh(mapdl, inp):
     # Define global mesh ref. level (1(fine) to 10(rough)) and plot
     mapdl.smrtsize(inp.mesh_refine)
     mapdl.amesh("ALL")
-    mapdl.eplot()
 
     return mapdl
 
@@ -49,13 +49,21 @@ def ini_rho(mapdl, inp):
     nelem = mapdl.mesh.n_elem
     rho = np.zeros(nelem)
 
+    # Start time measure of ini_rho
+    tic_ini_rho = time.time()
+
     # Initialization of density for each element
     # Uses one materal type for each element
-    for el in range(nelem):
-        el_ansys = el + 1  # Ansys numbering convention
-        mapdl.mp("EX", el_ansys, inp.young_ini)
-        mapdl.mp("PRXY", el_ansys, inp.poisson)
-        mapdl.emodif(el_ansys, "MAT", el_ansys)
-        rho[el] = inp.rho_ini
+    mapdl.mp("EX", "1:" + str(nelem), inp.young_ini)
+    mapdl.mp("PRXY", "1:" + str(nelem), inp.poisson)
+    mapdl.emodif("1:" + str(nelem), "MAT", "1:" + str(nelem))
+    rho = np.full(nelem, inp.rho_ini)
+
+    # Finish time measure of ini_rho
+    tac_ini_rho = time.time()
+    print(
+        "--- Function ini_rho elapsed time: %s seconds ---"
+        % (tac_ini_rho - tic_ini_rho)
+    )
 
     return nelem, rho

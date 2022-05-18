@@ -20,8 +20,8 @@ def huiskes_methods(mapdl, inp, nelem, rho):
     """
 
     # Loop over remodeling steps
-    for i in range(1, inp.niter + 1):
-        status = "Remodeling iteration " + str(i) + " of " + str(inp.niter)
+    for i in range(inp.niter):
+        status = "Remodeling iteration " + str(i + 1) + " of " + str(inp.niter)
         print(status)
 
         mapdl = solve_ansys(mapdl)
@@ -47,6 +47,9 @@ def solve_ansys(mapdl):
     mapdl.post1()
     mapdl.set("LAST")
 
+    # Plot SED solution
+    # mapdl.plesol("SEND", "ELASTIC")
+
     return mapdl
 
 
@@ -63,14 +66,7 @@ def get_sed(mapdl, nelem):
     """
 
     sed = np.zeros(nelem)
-
-    # Save element-wise SED result in E-Table
-    mapdl.etable("et_sed", "SEND", "ELASTIC")
-
-    # Read element-wise SED from etable and save to numpy vector
-    for el in range(nelem):
-        el_ansys = el + 1
-        sed[el] = mapdl.get("sed", "ELEM", el_ansys, "ETAB", "et_sed")
+    sed = mapdl.post_processing.element_values("SEND", "ELASTIC")
 
     return mapdl, sed
 
@@ -221,16 +217,11 @@ def update_material(mapdl, inp, rho, nelem):
 
     mapdl.prep7()
 
+    # Update based on density
+    young = calc_young(rho, CC, GC)
     for el in range(nelem):
-        el_ansys = el + 1
-
-        # Get mat number and young modulus of each elem
-        mat_no = mapdl.get("mat_no", "MAT", el)
-        young[el] = mapdl.get("young", "EX", mat_no)
-
-        # Update based on density
-        young[el] = calc_young(rho[el], CC, GC)
-        mapdl.mp("EX", el_ansys, young[el])
+        elansys = el + 1
+        mapdl.mp("EX", elansys, young[el])  # THIS STILL NOT WORKING AS VECTOR!
 
     return young
 
@@ -240,8 +231,8 @@ def calc_young(rho, CC, GC):
 
     Parameters
     ----------
-    rho: float
-        Element density
+    rho: float vector
+        Vector of element-wise density
 
     CC: float or int
         Linear constant in Currey's function
@@ -251,13 +242,13 @@ def calc_young(rho, CC, GC):
 
     Returns
     -------
-    young: float
-        Element young modulus
+    young: float vectpr
+        vector of element-wise young modulus
     """
 
     young = CC * (rho**GC)
 
-    check_if_number(young)
+    # check_if_number(young)
 
     return young
 

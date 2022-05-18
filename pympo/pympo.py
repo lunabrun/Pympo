@@ -12,18 +12,21 @@ Output from the program to the "ansys_tmp" folder.
 """
 
 import os
+import time
 from ansys.mapdl.core import launch_mapdl
 
 from remodeling import remodel
 from utils import inp, geo, mesh, bc
 
+# Start time measure
+tic = time.time()
+
 # Initialization - Stops, clear and delete any running module/analysis
 mapdl = launch_mapdl(
-    run_location=os.getcwd() + "/pympo/ansys_tmp",
-    loglevel="WARNING",
-    print_com=True,
+    run_location=os.getcwd() + "/pympo/ansys_tmp", override=True
 )
 mapdl.finish()
+mapdl.mute = True
 mapdl.clear()
 
 # Preprocessor (Setting up the model)
@@ -47,3 +50,7 @@ mapdl, rho, young = remodel.huiskes_methods(mapdl, inp, nelem, rho)
 # Finish mapdl
 mapdl.run(":ENDSCRIPT")
 mapdl.exit()
+
+# Finish time measure
+tac = time.time()
+print("--- Total elapsed time: %s seconds ---" % (tac - tic))
