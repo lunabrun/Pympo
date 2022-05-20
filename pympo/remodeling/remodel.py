@@ -6,6 +6,8 @@ Module to calculate remodeling of bone
 
 import numpy as np
 
+# from utils import post
+
 
 def huiskes_methods(mapdl, inp, nelem, rho):
     """Remodel material as per algorithm from Huiskes "family"
@@ -26,10 +28,12 @@ def huiskes_methods(mapdl, inp, nelem, rho):
 
         mapdl = solve_ansys(mapdl)
         mapdl, sed = get_sed(mapdl, nelem)
-        rho = calc_new_rho(inp, rho, sed, nelem)
+        rho, stimulus = calc_new_rho(inp, rho, sed, nelem)
         young = update_material(mapdl, inp, rho, nelem)
 
-    return mapdl, rho, young
+        # post.plot_results(mapdl, rho, young, stimulus, i, inp)
+
+    return mapdl, rho, young, stimulus
 
 
 def solve_ansys(mapdl):
@@ -117,7 +121,7 @@ def calc_new_rho(inp, rho, sed, nelem):
         elif rho[el] >= inp.rho_max:
             rho[el] = inp.rho_max
 
-    return rho
+    return rho, stimulus
 
 
 def calc_stimulus(rho, sed):

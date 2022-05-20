@@ -7,7 +7,7 @@ Module to supply input variables to pympo program.
 # Parameters unit system: SI (m, N, kg, etc.). Always check and confirm this!
 
 # Program control
-niter = 10  # Number of iterations for material remodeling
+niter = 50  # Number of iterations for material remodeling
 
 # Geometry parameters
 length = 1.0  # Length (x) of plate (m)
@@ -34,3 +34,6 @@ f_fac = 1.0  # Slope of the bone formation function
 r_fac = 1.0  # Slope of the bone resorption function
 rho_min = 0.01  # Minimal allowed density
 rho_max = 1.740  # Maximum allowed density
+
+# Output parameters
+out_dir = "/pympo/ansys_tmp"

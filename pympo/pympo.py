@@ -16,15 +16,13 @@ import time
 from ansys.mapdl.core import launch_mapdl
 
 from remodeling import remodel
-from utils import inp, geo, mesh, bc
+from utils import inp, geo, mesh, bc, post
 
 # Start time measure
 tic = time.time()
 
 # Initialization - Stops, clear and delete any running module/analysis
-mapdl = launch_mapdl(
-    run_location=os.getcwd() + "/pympo/ansys_tmp", override=True
-)
+mapdl = launch_mapdl(run_location=os.getcwd() + inp.out_dir, override=True)
 mapdl.finish()
 mapdl.mute = True
 mapdl.clear()
@@ -45,7 +43,10 @@ nelem, rho = mesh.ini_rho(mapdl, inp)
 mapdl = bc.create_bc_weinans92(mapdl, inp)
 
 # Remodel material
-mapdl, rho, young = remodel.huiskes_methods(mapdl, inp, nelem, rho)
+mapdl, rho, young, stimulus = remodel.huiskes_methods(mapdl, inp, nelem, rho)
+
+# Postprocess results
+post.plot_results(mapdl, rho, young, stimulus, "last", inp)
 
 # Finish mapdl
 mapdl.run(":ENDSCRIPT")
