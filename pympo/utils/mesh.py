@@ -52,7 +52,7 @@ def ini_rho(mapdl, inp):
     # Start time measure of ini_rho
     tic_ini_rho = time.time()
 
-    # Initialization of density for each element
+    # Initialization (via implied do-loop) of density for each element
     # Uses one materal type for each element
     mapdl.mp("EX", "1:" + str(nelem), inp.young_ini)
     mapdl.mp("PRXY", "1:" + str(nelem), inp.poisson)

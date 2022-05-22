@@ -13,12 +13,12 @@ from pympo.remodeling.remodel import calc_delta_rho_local
 
 # from pympo.remodeling.remodel import update_material
 from pympo.remodeling.remodel import calc_young
-from pympo.remodeling.remodel import check_if_numeric
+from pympo.remodeling.remodel import check_if_num_numpy
 
 
 # Constants as reference for tests
-RHO = 0.8
-SED = 0.25
+RHO = np.asarray([0.8])
+SED = np.asarray([0.25])
 
 CC = 100
 GC = 2
@@ -51,38 +51,54 @@ inp2.r_fac = inp1.r_fac
 inp2.rho_min = inp1.rho_min
 inp2.rho_max = inp1.rho_max
 
-inp3 = Inp()
-inp3.K = inp1.K
-inp3.s = "1"
-inp3.f_fac = inp1.f_fac
-inp3.r_fac = inp1.r_fac
-inp3.rho_min = inp1.rho_min
-inp3.rho_max = inp1.rho_max
-
 
 @pytest.mark.parametrize(
     "inp, rho, sed, nelem, rho_new, stimulus",
     [
-        (inp1, [1.0], [1.0], 1, pytest.approx([1.0]), pytest.approx([1.0])),
-        # (inp1, [2.0], [0.5], 1, pytest.approx([1.25])),
-        # (inp1, [-2.0], [0.5], 1, pytest.approx([0.01])),
-        # (inp1, [2.0], [-0.5], 1, pytest.approx([0.75])),
-        # (
-        #     inp1,
-        #     [-2.0, 2.0, 1.3],
-        #     [0.5, -0.5, 1.0],
-        #     3,
-        #     pytest.approx([0.01, 0.75, 1.06923]),
-        # ),
-        # (inp1, [100.0], [5], 1, pytest.approx([inp1.rho_max])),
-        # (inp1, [0.005], [0.005], 1, pytest.approx([inp1.rho_min])),
-        # (inp2, [2.0], [0.5], 1, pytest.approx([1.75])),
-        # (inp2, [2.0], [4.0], 1, pytest.approx([2.0])),
-        # (inp2, [1.0], [1.75], 1, pytest.approx([1.25])),
+        (
+            inp1,
+            np.asarray([1.0]),
+            np.asarray([1.0]),
+            1,
+            pytest.approx(np.asarray([1.0])),
+            pytest.approx(np.asarray([1.0])),
+        ),
+        (
+            inp1,
+            np.asarray([2.0]),
+            np.asarray([0.5]),
+            1,
+            pytest.approx(np.asarray([1.25])),
+            pytest.approx(np.asarray([0.25])),
+        ),
+        (
+            inp1,
+            np.asarray([1.0, 2.0, 1.3]),
+            np.asarray([1.0, 0.5, 1.0]),
+            3,
+            pytest.approx(np.asarray([1.0, 1.25, 1.06923])),
+            pytest.approx(np.asarray([1.0, 0.25, 0.7692307])),
+        ),
+        (
+            inp1,
+            np.asarray([100.0, 0.005]),
+            np.asarray([5.0, 0.005]),
+            2,
+            pytest.approx(np.asarray([inp1.rho_max, inp1.rho_min])),
+            pytest.approx(np.asarray([0.05, 1])),
+        ),
+        (
+            inp2,
+            np.asarray([2.0, 2.0, 1.0]),
+            np.asarray([0.5, 4.0, 1.75]),
+            3,
+            pytest.approx(np.asarray([1.75, 2.0, 1.25])),
+            pytest.approx(np.asarray([0.25, 2.0, 1.75])),
+        ),
     ],
 )
 def test_calc_new_rho_regular(inp, rho, sed, nelem, rho_new, stimulus):
-    assert calc_new_rho(inp, rho, sed, nelem) == rho_new, stimulus
+    assert calc_new_rho(inp, rho, sed, nelem) == (rho_new, stimulus)
 
 
 @pytest.mark.parametrize(
@@ -90,8 +106,7 @@ def test_calc_new_rho_regular(inp, rho, sed, nelem, rho_new, stimulus):
     [
         (inp1, ["a"], [1.0], 1, TypeError),
         (inp1, [1.0], ["a"], 1, TypeError),
-        (inp1, [1.0], [1.0], "a", TypeError),
-        (inp3, [1.0], [1.0], 1, TypeError),
+        (inp2, [1.0], [1.0], "a", TypeError),
     ],
 )
 def test_calc_new_rho_exception(inp, rho, sed, nelem, exception):
@@ -102,9 +117,12 @@ def test_calc_new_rho_exception(inp, rho, sed, nelem, exception):
 @pytest.mark.parametrize(
     "sed, rho, stimulus",
     [
-        (SED, RHO, pytest.approx(0.3125)),
-        (10, 2, 5),
-        (2.7e8, 1.2e8, pytest.approx(2.25)),
+        (SED, RHO, pytest.approx(np.asarray([0.3125]))),
+        (
+            np.asarray([2.7e8]),
+            np.asarray([1.2e8]),
+            pytest.approx(np.asarray([2.25])),
+        ),
         (
             np.asarray([1.0, 2.0, 3.0]),
             np.asarray([3.0, 2.0, 1.0]),
@@ -137,16 +155,23 @@ def test_stimulus_exception(sed, rho, exception):
 @pytest.mark.parametrize(
     "stimulus, K, s, f_fac, r_fac, delta_rho",
     [
-        (SED, K_ZERO, S, F_FAC, R_FAC, pytest.approx(0.0)),
-        (2, 2, 0, 1, 1, 0),
-        (3, 2, 0, 1, 1, 1),
-        (1, 2, 0, 1, 1, -1),
-        (0.3, 0.2, 0.5, 1, 1, pytest.approx(0.0)),
-        (0.35, 0.2, 0.5, 1, 1, pytest.approx(0.05)),
-        (0.15, 0.2, 0.5, 1, 1, pytest.approx(0.0)),
-        (0.07, 0.2, 0.5, 1, 1, pytest.approx(-0.03)),
-        (0.07, 0.2, 0.5, 1.5, 1.2, pytest.approx(-0.036)),
-        (0.35, 0.2, 0.5, 1.5, 1.2, pytest.approx(0.075)),
+        (SED, K_ZERO, S, F_FAC, R_FAC, pytest.approx(np.asarray([0.0]))),
+        (
+            np.asarray([0.3, 0.35, 0.15]),
+            0.2,
+            0.5,
+            1,
+            1,
+            pytest.approx(np.asarray([0.00, 0.05, 0.0])),
+        ),
+        (
+            np.asarray([0.07, 0.35]),
+            0.2,
+            0.5,
+            1.5,
+            1.2,
+            pytest.approx(np.asarray([-0.036, 0.075])),
+        ),
     ],
 )
 def test_calc_delta_rho_local_regular(stimulus, K, s, f_fac, r_fac, delta_rho):
@@ -156,10 +181,10 @@ def test_calc_delta_rho_local_regular(stimulus, K, s, f_fac, r_fac, delta_rho):
 @pytest.mark.parametrize(
     "stimulus, K, s, f_fac, r_fac, exception",
     [
-        (2, "a", 0, 1, 1, TypeError),
+        (np.asarray([2.0]), "a", 0, 1, 1, TypeError),
         ([2], 1, 0, 1, 1, TypeError),
-        (2, 1, 0, [1], 1, TypeError),
-        (1, 2, 0, 1, [1], TypeError),
+        (np.asarray([2.0, 2.0]), 1, 0, [1, 2], 1, TypeError),
+        (np.asarray([2.0]), 2, 0, 1, [2, 1], ValueError),
     ],
 )
 def test_calc_delta_rho_local_exception(
@@ -182,9 +207,13 @@ def test_update_material_regular(mapdl, inp, rho, nelem, young):
 @pytest.mark.parametrize(
     "rho, cc, gc, young",
     [
-        (RHO, CC, GC, pytest.approx(64.0)),
-        (10, 15, 0, 15),
-        (1.2e8, 2.0e8, 2.0, pytest.approx(2.88e24)),
+        (RHO, CC, GC, pytest.approx(np.asarray([64.0]))),
+        (
+            np.asarray([10, 1.2e8]),
+            np.asarray([15, 2.0e8]),
+            np.asarray([0, 2.0]),
+            pytest.approx(np.asarray([15, 2.88e24])),
+        ),
         (
             np.asarray([1.0, 2.0, 3.0]),
             3.0,
@@ -203,11 +232,12 @@ def test_calc_young_regular(rho, cc, gc, young):
         (1, "a", 1, TypeError),
         ([2], 1, 1, TypeError),
         (0, 1, [0], TypeError),
+        (-2.0, 1.0, -0.5, TypeError),
         (
-            np.asarray([1.0, 2.0, 3.0]),
+            np.asarray(["NaN", 2.0, 3.0]),
             3.0,
             2.0,
-            ValueError,
+            TypeError,
         ),
     ],
 )
@@ -219,24 +249,27 @@ def test_calc_young_exception(rho, cc, gc, exception):
 @pytest.mark.parametrize(
     "array",
     [
-        1,
-        2.0,
-        -3,
-        -4.5,
-        3.7e18,
+        np.asarray([1]),
+        np.asarray([2.0]),
+        np.asarray([-3]),
+        np.asarray([3.7e18]),
+        np.asarray([1.0, 2.0, 3.0]),
     ],
 )
-def test_check_if_numeric_regular(array):
-    assert check_if_numeric(array)
+def test_check_if_num_numpy_regular(array):
+    assert check_if_num_numpy(array)
 
 
 @pytest.mark.parametrize(
     "array, exception",
     [
+        (1.0, TypeError),
+        ([1, 2], TypeError),
         ("a", TypeError),
         ([2, "a"], TypeError),
+        (np.asarray([1.0, 2.0, "NaN"]), TypeError),
     ],
 )
-def test_check_if_numeric_exception(array, exception):
+def test_check_if_num_numpy_exception(array, exception):
     with pytest.raises(exception):
-        check_if_numeric(array)
+        check_if_num_numpy(array)
