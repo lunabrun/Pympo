@@ -6,6 +6,7 @@ Module to post-process and plot results for pympo program.
 import os
 from ansys.mapdl import core as pymapdl
 
+
 # Define common theme for all plots
 my_theme = pymapdl.MapdlTheme()
 my_theme.background = "white"

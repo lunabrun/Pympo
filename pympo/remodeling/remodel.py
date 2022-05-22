@@ -6,7 +6,7 @@ Module to calculate remodeling of bone
 
 import numpy as np
 
-# from utils import post
+import post
 
 
 def huiskes_methods(mapdl, inp, nelem, rho):
@@ -27,11 +27,11 @@ def huiskes_methods(mapdl, inp, nelem, rho):
         print(status)
 
         mapdl = solve_ansys(mapdl)
-        mapdl, sed = get_sed(mapdl, nelem)
+        sed = get_sed(mapdl, nelem)
         rho, stimulus = calc_new_rho(inp, rho, sed, nelem)
         young = update_material(mapdl, inp, rho, nelem)
 
-        # post.plot_results(mapdl, rho, young, stimulus, i, inp)
+    post.plot_results(mapdl, rho, young, stimulus, i, inp)
 
     return mapdl, rho, young, stimulus
 
@@ -67,12 +67,17 @@ def get_sed(mapdl, nelem):
 
     nelem: integer
         Number of elements in finite element mesh
+
+    Returns
+    -------
+    sed: float vector
+        Vector of element-wise strain energy density
     """
 
     sed = np.zeros(nelem)
     sed = mapdl.post_processing.element_values("SEND", "ELASTIC")
 
-    return mapdl, sed
+    return sed
 
 
 def calc_new_rho(inp, rho, sed, nelem):
@@ -104,8 +109,8 @@ def calc_new_rho(inp, rho, sed, nelem):
     f_fac = inp.f_fac
     r_fac = inp.r_fac
 
+    stimulus = calc_stimulus(sed, rho)
     for el in range(nelem):
-        stimulus[el] = calc_stimulus(rho[el], sed[el])
         delta_rho = calc_delta_rho_local(
             stimulus[el],
             K,
@@ -124,21 +129,21 @@ def calc_new_rho(inp, rho, sed, nelem):
     return rho, stimulus
 
 
-def calc_stimulus(rho, sed):
+def calc_stimulus(sed, rho):
     """Calculate stimulus
 
     Parameters
     ----------
-    rho: float
-        Element density
+    rho: float vector
+        Vector of element-wise density
 
-    sed: float
-        Element strain-energy-density
+    sed: float vector
+        Vector of element-wise strain-energy-density
 
     Returns
     -------
-    stimulus: float
-        Element stimulus for comparison with reference value
+    stimulus: float vector
+        Vector of element-wise stimulus for comparison with reference value
     """
 
     stimulus = sed / rho
@@ -187,7 +192,7 @@ def calc_delta_rho_local(stimulus, K, s, f_fac, r_fac):
     else:
         delta_rho = 0.0
 
-    check_if_number(delta_rho)
+    check_if_numeric(delta_rho)
 
     return delta_rho
 
@@ -257,25 +262,30 @@ def calc_young(rho, CC, GC):
     return young
 
 
-def check_if_number(var):
-    """Function to check if a variable is a number (float or int)
+def check_if_numeric(array):
+    """Determine whether the argument has a numeric datatype, when
+    converted to a NumPy array.
 
-    Useful to avoid errors due to following behaviours:
-    2*"a" = "aa"
-    3*[1] = [1 1 1]
+    Signed integers ("i"), floats numbers ("f") are the kinds of numeric
+    datatype accepted.
 
     Parameters
     ----------
-    var: any
-        Variable to be checked
+    array : array-like
+        The array to check.
 
     Returns
     -------
-    True: true
-        True if ok, otherwise TypeError exception is raised.
+    is_numeric : `bool`
+        True if the array has a numeric datatype,
+        otherwise TypeError exception is raised.
         Function does NOT change the value or type of var
+
     """
 
-    if not (isinstance(var, float) or isinstance(var, int)):
+    # Boolean, unsigned integer, signed integer, float, complex.
+    _NUMERIC_KINDS = set("if")
+
+    if not (np.asarray(array).dtype.kind in _NUMERIC_KINDS):
         raise TypeError("Result has wrong type, check input variables.")
     return True

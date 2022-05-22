@@ -15,8 +15,8 @@ import os
 import time
 from ansys.mapdl.core import launch_mapdl
 
-from remodeling import remodel
-from utils import inp, geo, mesh, bc, post
+from remodeling import remodel, post
+from utils import inp, geo, mesh, bc
 
 # Start time measure
 tic = time.time()

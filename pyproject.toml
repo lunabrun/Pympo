@@ -16,8 +16,12 @@ flake8 = "^4.0.1"
 Sphinx = "^4.5.0"
 furo = "^2022.4.7"
 pytest-cov = "^3.0.0"
-pandas = "^1.4.2"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".", "pympo/remodeling", "pympo/utils/",
+]
