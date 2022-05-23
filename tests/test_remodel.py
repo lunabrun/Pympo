@@ -14,14 +14,15 @@ from pympo.remodeling.remodel import calc_delta_rho_local
 # from pympo.remodeling.remodel import update_material
 from pympo.remodeling.remodel import calc_young
 from pympo.remodeling.remodel import check_if_num_numpy
+from pympo.remodeling.remodel import check_if_float
 
 
 # Constants as reference for tests
 RHO = np.asarray([0.8])
 SED = np.asarray([0.25])
 
-CC = 100
-GC = 2
+CC = 100.0
+GC = 2.0
 
 K_ZERO = 0.25
 S = 0.0
@@ -160,8 +161,8 @@ def test_stimulus_exception(sed, rho, exception):
             np.asarray([0.3, 0.35, 0.15]),
             0.2,
             0.5,
-            1,
-            1,
+            1.0,
+            1.0,
             pytest.approx(np.asarray([0.00, 0.05, 0.0])),
         ),
         (
@@ -184,7 +185,7 @@ def test_calc_delta_rho_local_regular(stimulus, K, s, f_fac, r_fac, delta_rho):
         (np.asarray([2.0]), "a", 0, 1, 1, TypeError),
         ([2], 1, 0, 1, 1, TypeError),
         (np.asarray([2.0, 2.0]), 1, 0, [1, 2], 1, TypeError),
-        (np.asarray([2.0]), 2, 0, 1, [2, 1], ValueError),
+        (np.asarray([2.0]), 2, 0, 1, [2, 1], TypeError),
     ],
 )
 def test_calc_delta_rho_local_exception(
@@ -209,10 +210,10 @@ def test_update_material_regular(mapdl, inp, rho, nelem, young):
     [
         (RHO, CC, GC, pytest.approx(np.asarray([64.0]))),
         (
-            np.asarray([10, 1.2e8]),
-            np.asarray([15, 2.0e8]),
-            np.asarray([0, 2.0]),
-            pytest.approx(np.asarray([15, 2.88e24])),
+            np.asarray([1.2e8]),
+            2.0e8,
+            2.0,
+            pytest.approx(np.asarray([2.88e24])),
         ),
         (
             np.asarray([1.0, 2.0, 3.0]),
@@ -237,6 +238,12 @@ def test_calc_young_regular(rho, cc, gc, young):
             np.asarray(["NaN", 2.0, 3.0]),
             3.0,
             2.0,
+            TypeError,
+        ),
+        (
+            np.asarray([10.0, 1.2e8]),
+            np.asarray([15.0, 2.0e8]),
+            np.asarray([0.0, 2.0]),
             TypeError,
         ),
     ],
@@ -273,3 +280,33 @@ def test_check_if_num_numpy_regular(array):
 def test_check_if_num_numpy_exception(array, exception):
     with pytest.raises(exception):
         check_if_num_numpy(array)
+
+
+@pytest.mark.parametrize(
+    "var",
+    [
+        0.0,
+        -1.0,
+        1e20,
+        1 / 3,
+    ],
+)
+def test_check_if_float_regular(var):
+    assert check_if_float(var)
+
+
+@pytest.mark.parametrize(
+    "var, exception",
+    [
+        (np.asarray([1]), TypeError),
+        ([1, 2], TypeError),
+        ("a", TypeError),
+        ([2, "a"], TypeError),
+        (np.asarray([1.0, 2.0, "NaN"]), TypeError),
+        (-2, TypeError),
+        (0, TypeError),
+    ],
+)
+def test_check_if_float_exception(var, exception):
+    with pytest.raises(exception):
+        check_if_float(var)

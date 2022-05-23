@@ -6,7 +6,7 @@ Module to calculate remodeling of bone
 
 import numpy as np
 
-import post
+# import remodeling.post
 
 
 def huiskes_methods(mapdl, inp, nelem, rho):
@@ -45,11 +45,11 @@ def huiskes_methods(mapdl, inp, nelem, rho):
         rho, stimulus = calc_new_rho(inp, rho, sed, nelem)
         young = update_material(mapdl, inp, rho, nelem)
 
+        # remodeling.post.plot_results(mapdl, rho, young, stimulus, i, inp)
+
     # Check type of results
     for array in [rho, young, stimulus]:
         check_if_num_numpy(array)
-
-    post.plot_results(mapdl, rho, young, stimulus, i, inp)
 
     return mapdl, rho, young, stimulus
 
@@ -130,6 +130,10 @@ def calc_new_rho(inp, rho, sed, nelem):
     s = inp.s
     f_fac = inp.f_fac
     r_fac = inp.r_fac
+
+    # Check type of input
+    for var in [K, s, f_fac, r_fac]:
+        check_if_float(var)
 
     stimulus = calc_stimulus(sed, rho)
     delta_rho = calc_delta_rho_local(
@@ -213,6 +217,10 @@ def calc_delta_rho_local(stimulus, K, s, f_fac, r_fac):
     f_lim = (1 + s) * K
     r_lim = (1 - s) * K
 
+    # Check type of input
+    for var in [K, s, f_lim, r_lim, f_fac, r_fac]:
+        check_if_float(var)
+
     delta_rho[stimulus > f_lim] = f_fac * (stimulus[stimulus > f_lim] - f_lim)
     delta_rho[stimulus < r_lim] = r_fac * (stimulus[stimulus < r_lim] - r_lim)
 
@@ -249,6 +257,10 @@ def update_material(mapdl, inp, rho, nelem):
     CC = inp.CC
     GC = inp.GC
 
+    # Check type of input
+    for var in [CC, GC]:
+        check_if_float(var)
+
     mapdl.prep7()
 
     # Update based on density
@@ -281,6 +293,10 @@ def calc_young(rho, CC, GC):
     young: float numpy array
         Numpy array of element-wise young modulus
     """
+
+    # Check type of input
+    for var in [CC, GC]:
+        check_if_float(var)
 
     young = CC * (rho**GC)
 
@@ -320,6 +336,30 @@ def check_if_num_numpy(array):
     if not (array.dtype.kind in _NUMERIC_KINDS):
         raise TypeError(
             "Variable numpy array is not numeric, check input variables."
+        )
+
+    return True
+
+
+def check_if_float(var):
+    """Determine whether the argument is a float.
+
+    Parameters
+    ----------
+    var : any
+        The variable to be checked.
+
+    Returns
+    -------
+    : `bool`
+        True if it is a float, otherwise TypeError exception is raised.
+        Function does NOT change the value or type of var
+
+    """
+
+    if not (isinstance(var, float)):
+        raise TypeError(
+            "Variable not a float. Float expected. Check input variables."
         )
 
     return True

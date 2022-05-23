@@ -4,6 +4,7 @@ Inp
 Module to supply input variables to pympo program.
 """
 
+
 # Parameters unit system: SI (m, N, kg, etc.). Always check and confirm this!
 
 # Program control
@@ -35,5 +36,5 @@ r_fac = 1.0  # Slope of the bone resorption function
 rho_min = 0.01  # Minimal allowed density
 rho_max = 1.740  # Maximum allowed density
 
-# Output parameters
+# Program flow parameters
 out_dir = "/pympo/ansys_tmp"

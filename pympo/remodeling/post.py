@@ -3,7 +3,6 @@ Post
 
 Module to post-process and plot results for pympo program.
 """
-import os
 from ansys.mapdl import core as pymapdl
 
 
@@ -16,7 +15,7 @@ my_theme.show_scalar_bar = False
 my_theme.cpos = "xy"
 
 
-def plot_results(mapdl, rho, young, stimulus, i, inp):
+def plot_results(mapdl, rho, young, stimulus, i, run_dir):
     """Drive plotting of results
 
     Parameters
@@ -29,19 +28,32 @@ def plot_results(mapdl, rho, young, stimulus, i, inp):
 
     young: float vector
         Vector of element-wise young modulus
+
+    stimulus: float vector
+        Vector of element-wise stimulus
+
+    i: integer
+        Step for post-processing
+
+    run_dir: string
+        Directory for saving post-processing files
     """
 
     grid = mapdl.mesh.grid
-    grid.cell_data["Density"] = rho
-    grid.cell_data["Young Modulus"] = young
-    grid.cell_data["Stimulus"] = stimulus
-    grid.save(os.getcwd() + inp.out_dir + "/pympo_res00" + str(i) + ".vtk")
+    list_of_outputs = [
+        ("Rho", rho),
+        ("Young", young),
+        ("Stimulus", stimulus),
+    ]
 
-    plot_scalar(grid, rho, "rho00" + str(i), inp)
-    plot_scalar(grid, young, "young00" + str(i), inp)
+    for index, tuple in enumerate(list_of_outputs):
+        grid.cell_data[tuple[0]] = tuple[1]
+        plot_scalar(grid, tuple[1], tuple[0] + "00" + str(i), run_dir)
+
+    grid.save(run_dir + "/pympo_res00" + str(i) + ".vtk")
 
 
-def plot_scalar(grid, scalar, scalar_name, inp):
+def plot_scalar(grid, scalar, scalar_name, run_dir):
     """Plot generic scalar field over mesh
 
     Parameters
@@ -51,6 +63,12 @@ def plot_scalar(grid, scalar, scalar_name, inp):
 
     scalar: vector
         Vector of scalars to be plotted
+
+    scalar_name: scalar_name
+        Name of scalar to be plotted
+
+    run_dir: string
+        Directory for saving post-processing files
     """
 
     # Parameters for scalar bar
@@ -58,7 +76,7 @@ def plot_scalar(grid, scalar, scalar_name, inp):
 
     grid.plot(
         off_screen=True,
-        screenshot=os.getcwd() + inp.out_dir + "/" + scalar_name + ".png",
+        screenshot=run_dir + "/" + scalar_name + ".png",
         scalars=scalar,
         show_scalar_bar=True,
         scalar_bar_args=sbar_kwargs,

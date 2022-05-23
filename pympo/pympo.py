@@ -13,16 +13,18 @@ Output from the program to the "ansys_tmp" folder.
 
 import os
 import time
+
 from ansys.mapdl.core import launch_mapdl
 
 from remodeling import remodel, post
 from utils import inp, geo, mesh, bc
 
-# Start time measure
+# Start time measurement and logging
 tic = time.time()
+run_dir = os.getcwd() + inp.out_dir
 
 # Initialization - Stops, clear and delete any running module/analysis
-mapdl = launch_mapdl(run_location=os.getcwd() + inp.out_dir, override=True)
+mapdl = launch_mapdl(run_location=run_dir, override=True)
 mapdl.finish()
 mapdl.mute = True
 mapdl.clear()
@@ -46,7 +48,7 @@ mapdl = bc.create_bc_weinans92(mapdl, inp)
 mapdl, rho, young, stimulus = remodel.huiskes_methods(mapdl, inp, nelem, rho)
 
 # Postprocess results
-post.plot_results(mapdl, rho, young, stimulus, "last", inp)
+post.plot_results(mapdl, rho, young, stimulus, "last", run_dir)
 
 # Finish mapdl
 mapdl.run(":ENDSCRIPT")
