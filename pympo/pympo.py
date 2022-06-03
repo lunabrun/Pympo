@@ -24,7 +24,21 @@ tic = time.time()
 run_dir = os.getcwd() + inp.out_dir
 
 # Initialization - Stops, clear and delete any running module/analysis
-mapdl = launch_mapdl(run_location=run_dir, override=True)
+try:  # Initiate grpc server
+    mapdl = launch_mapdl(
+        run_location=run_dir,
+        override=True,
+        start_instance=True,
+    )
+except OSError:  # If unable to initiate, try to connect to existing server
+    mapdl = launch_mapdl(
+        run_location=run_dir,
+        override=True,
+        start_instance=False,
+    )
+except:
+    print("Ansys Grpc server failed to start. Pympo will be closed.")
+    sys.exit()
 mapdl.finish()
 mapdl.mute = True
 mapdl.clear()

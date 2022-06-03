@@ -1,4 +1,5 @@
 import os
+import sys
 import pytest
 import numpy as np
 
@@ -12,7 +13,22 @@ def mapdl_sed_benchmark():
     # Initialization - Stops, clear and delete any running module/analysis
     out_dir = "/tests/sandbox"
     run_dir = os.getcwd() + out_dir
-    mapdl = launch_mapdl(run_location=run_dir, override=True)
+    try:  # Initiate grpc server
+        mapdl = launch_mapdl(
+            run_location=run_dir,
+            override=True,
+            start_instance=True,
+        )
+    except OSError:  # If unable to initiate, try to connect to existing server
+        mapdl = launch_mapdl(
+            run_location=run_dir,
+            override=True,
+            start_instance=False,
+        )
+    except:
+        print("Ansys Grpc server failed to start. Pympo will be closed.")
+        sys.exit()
+
     mapdl.mute = True
 
     # Read all necessary APDL commands for benchmark
