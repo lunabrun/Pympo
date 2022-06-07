@@ -1,7 +1,8 @@
 """
 Test_remodel
 
-Module to test functions related to remodeling algorithms
+Module to test functions related to remodeling algorithms.
+Only functions that do NOT need a mapdl instance are tested here.
 """
 
 import pytest
@@ -10,8 +11,6 @@ import numpy as np
 from pympo.remodeling.remodel import calc_new_rho
 from pympo.remodeling.remodel import calc_stimulus
 from pympo.remodeling.remodel import calc_delta_rho_local
-
-# from pympo.remodeling.remodel import update_material
 from pympo.remodeling.remodel import calc_young
 from pympo.remodeling.remodel import check_if_num_numpy
 from pympo.remodeling.remodel import check_if_float
@@ -193,17 +192,6 @@ def test_calc_delta_rho_local_exception(
 ):
     with pytest.raises(exception):
         calc_delta_rho_local(stimulus, K, s, f_fac, r_fac)
-
-
-""" @pytest.mark.parametrize(
-    "mapdl, inp, rho, nelem, young",
-    [
-        (mapdl, inp1, [1.0], 1, pytest.approx([1.0])),
-    ],
-)
-def test_update_material_regular(mapdl, inp, rho, nelem, young):
-    assert update_material(mapdl, inp, rho, nelem) == young """
-
 
 @pytest.mark.parametrize(
     "rho, cc, gc, young",

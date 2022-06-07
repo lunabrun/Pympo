@@ -13,8 +13,10 @@ Output from the program to the "ansys_tmp" folder.
 
 import os
 import time
+import sys
 
 from ansys.mapdl.core import launch_mapdl
+from ansys.mapdl.core.errors import LockFileException
 
 from remodeling import remodel, post
 from utils import inp, geo, mesh, bc
@@ -30,7 +32,10 @@ try:  # Initiate grpc server
         override=True,
         start_instance=True,
     )
-except OSError:  # If unable to initiate, try to connect to existing server
+except (
+    IOError,
+    LockFileException,
+):  # If unable to initiate, try to connect to existing server
     mapdl = launch_mapdl(
         run_location=run_dir,
         override=True,
@@ -39,9 +44,10 @@ except OSError:  # If unable to initiate, try to connect to existing server
 except:
     print("Ansys Grpc server failed to start. Pympo will be closed.")
     sys.exit()
+
 mapdl.finish()
-mapdl.mute = True
 mapdl.clear()
+mapdl.mute = True
 
 # Preprocessor (Setting up the model)
 mapdl.prep7()

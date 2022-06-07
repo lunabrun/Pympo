@@ -1,25 +1,61 @@
+"""
+Test_remodel_mapdl
+
+Module to test functions related to remodeling algorithms.
+Only functions that need a mapdl instance are tested here.
+"""
+
 import os
 import sys
 import pytest
 import numpy as np
 
 from ansys.mapdl.core import launch_mapdl
+from ansys.mapdl.core.errors import LockFileException
 
+from pympo.remodeling.remodel import solve_ansys
 from pympo.remodeling.remodel import get_sed
+from pympo.remodeling.remodel import update_material
+
+# Constants as reference for tests
+N_ELEM = 130
+RHO = 5.0 * np.ones(N_ELEM)
 
 
-@pytest.fixture
+class Inp:
+    # Dummy empty class to allow a Matlab-'struct' style variable for testing
+    pass
+
+
+# Input structures for tests
+inp1 = Inp()
+inp1.CC = 100.0
+inp1.GC = 2.0
+inp1.K = 1.0
+inp1.s = 0.0
+inp1.f_fac = 1.0
+inp1.r_fac = 1.0
+inp1.rho_min = 0.01
+inp1.rho_max = 2.0
+
+
+@pytest.fixture(scope="module")
 def mapdl_sed_benchmark():
     # Initialization - Stops, clear and delete any running module/analysis
     out_dir = "/tests/sandbox"
     run_dir = os.getcwd() + out_dir
+
+    # Initialization - Stops, clear and delete any running module/analysis
     try:  # Initiate grpc server
         mapdl = launch_mapdl(
             run_location=run_dir,
             override=True,
             start_instance=True,
         )
-    except OSError:  # If unable to initiate, try to connect to existing server
+    except (
+        IOError,
+        LockFileException,
+    ):  # If unable to initiate, try to connect to existing server
         mapdl = launch_mapdl(
             run_location=run_dir,
             override=True,
@@ -48,6 +84,20 @@ def mapdl_sed_benchmark():
     mapdl.exit()
 
 
+""" @pytest.mark.slow
+def test_solve_ansys_regular(mapdl_sed_benchmark):
+    mapdl_test = solve_ansys(mapdl_sed_benchmark)
+    sed = mapdl_test.post_processing.element_values("SEND", "ELASTIC")
+    assert np.allclose(sed, 0.28, 10e-04) """
+
+
 @pytest.mark.slow
-def test_get_sed(mapdl_sed_benchmark):
-    assert np.allclose(get_sed(mapdl_sed_benchmark, 130), 0.271, 10e-04)
+def test_get_sed_regular(mapdl_sed_benchmark):
+    assert np.allclose(get_sed(mapdl_sed_benchmark, N_ELEM), 0.271, 10e-04)
+
+
+@pytest.mark.slow
+def test_update_material_regular(mapdl_sed_benchmark):
+    assert np.allclose(
+        update_material(mapdl_sed_benchmark, inp1, RHO, N_ELEM), 2500.0, 10e-04
+    )
