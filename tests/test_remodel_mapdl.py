@@ -38,13 +38,13 @@ inp1.r_fac = 1.0
 inp1.rho_min = 0.01
 inp1.rho_max = 2.0
 
+# Common variable for test support functions
+out_dir = "/tests/sandbox"
+run_dir = os.getcwd() + out_dir
+
 
 @pytest.fixture(scope="module")
-def mapdl_sed_benchmark():
-    # Initialization - Stops, clear and delete any running module/analysis
-    out_dir = "/tests/sandbox"
-    run_dir = os.getcwd() + out_dir
-
+def load_mapdl():
     # Initialization - Stops, clear and delete any running module/analysis
     try:  # Initiate grpc server
         mapdl = launch_mapdl(
@@ -67,16 +67,6 @@ def mapdl_sed_benchmark():
 
     mapdl.mute = True
 
-    # Read all necessary APDL commands for benchmark
-    with open(run_dir + "/SED_Benchmark.inp", "r") as f:
-        cmd = f.read()
-
-    # Run script under "cmd"
-    mapdl.input_strings(cmd)
-    mapdl.post1()
-    mapdl.set("LAST")
-    mapdl.esel("S", "MAT", "", 1)
-
     yield mapdl
 
     # Finish mapdl
@@ -84,20 +74,64 @@ def mapdl_sed_benchmark():
     mapdl.exit()
 
 
-""" @pytest.mark.slow
-def test_solve_ansys_regular(mapdl_sed_benchmark):
-    mapdl_test = solve_ansys(mapdl_sed_benchmark)
-    sed = mapdl_test.post_processing.element_values("SEND", "ELASTIC")
-    assert np.allclose(sed, 0.28, 10e-04) """
+def run_sed_benchmark(mapdl):
+    # Read all necessary APDL commands for benchmark
+    with open(run_dir + "/SED_Benchmark.inp", "r") as f:
+        cmd = f.read()
+
+    # Run script under "cmd"
+    mapdl.input_strings(cmd)
+
+    return mapdl
+
+
+def solve_sed_benchmark(mapdl):
+    # Solve static analysis with ansys
+    mapdl.slashsolu()
+    mapdl.antype(0)
+    mapdl.solve()
+    mapdl.post1()
+    mapdl.set("LAST")
+    mapdl.esel("S", "MAT", "", 1)
+
+    return mapdl
 
 
 @pytest.mark.slow
-def test_get_sed_regular(mapdl_sed_benchmark):
-    assert np.allclose(get_sed(mapdl_sed_benchmark, N_ELEM), 0.271, 10e-04)
+def test_solve_ansys_regular(load_mapdl):
+    mapdl_sed_benchmark = run_sed_benchmark(load_mapdl)
+    mapdl_sed_benchmark = solve_ansys(mapdl_sed_benchmark)
+    mapdl_sed_benchmark.esel("S", "MAT", "", 1)
 
-
-@pytest.mark.slow
-def test_update_material_regular(mapdl_sed_benchmark):
+    # Normal stress in transverse direction
+    s_z = mapdl_sed_benchmark.post_processing.element_values("S", "Z")
     assert np.allclose(
-        update_material(mapdl_sed_benchmark, inp1, RHO, N_ELEM), 2500.0, 10e-04
+        s_z,
+        163.7,
+        rtol=0.0,
+        atol=0.1,
+    )
+
+
+@pytest.mark.slow
+def test_get_sed_regular(load_mapdl):
+    mapdl_sed_benchmark = run_sed_benchmark(load_mapdl)
+    mapdl_sed_benchmark = solve_sed_benchmark(mapdl_sed_benchmark)
+    assert np.allclose(
+        get_sed(mapdl_sed_benchmark, N_ELEM),
+        0.271,
+        rtol=0.0,
+        atol=1e-04,
+    )
+
+
+@pytest.mark.slow
+def test_update_material_regular(load_mapdl):
+    mapdl_sed_benchmark = run_sed_benchmark(load_mapdl)
+    mapdl_sed_benchmark = solve_sed_benchmark(mapdl_sed_benchmark)
+    assert np.allclose(
+        update_material(mapdl_sed_benchmark, inp1, RHO, N_ELEM),
+        2500.0,
+        rtol=1e-05,
+        atol=1e-08,
     )

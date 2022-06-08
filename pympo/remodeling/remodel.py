@@ -20,6 +20,12 @@ def huiskes_methods(mapdl, inp, nelem, rho):
     inp: input module file
         Parameter list containing all input variables
 
+    nelem: integer
+        Number of elements in finite element mesh
+
+    rho: float numpy array
+        Numpy array of element-wise density
+
     Returns
     -------
     mapdl: pyMAPDL object

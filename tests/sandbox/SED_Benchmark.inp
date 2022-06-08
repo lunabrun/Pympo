@@ -1117,17 +1117,22 @@ eblock,10,,,26
 esel,s,type,,2
 keyop,2,2,1                ! Apply load in local coordinate system
 keyop,2,7,1                ! Use original area so load is constant in large deformation
-esel,all
-/solu
-antype,0                   ! static analysis
-esel,s,type,,2
 nsle
 sfe,all,1,pres,1,0.
 sfe,all,2,pres,1,382.014992048571
 sfe,all,3,pres,1,0.
 nsel,all
 esel,all
-solve
+!/solu
+!antype,0                   ! static analysis
+!esel,s,type,,2
+!nsle
+!sfe,all,1,pres,1,0.
+!sfe,all,2,pres,1,382.014992048571
+!sfe,all,3,pres,1,0.
+!nsel,all
+!esel,all
+!solve
 !/post1
 !set, last
 !etable,ET_SED,SEND,ELASTIC
