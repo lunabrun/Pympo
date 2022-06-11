@@ -58,8 +58,8 @@ def plot_scalar(grid, scalar, scalar_name, run_dir):
 
     Parameters
     ----------
-    mapdl: pyMAPDL object
-        Main object containing ansys interface object
+    grid: pyMAPDL grid object
+        Grid object containing ansys mesh information
 
     scalar: vector
         Vector of scalars to be plotted

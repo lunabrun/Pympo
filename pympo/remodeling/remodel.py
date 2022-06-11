@@ -11,6 +11,8 @@ import numpy as np
 
 def huiskes_methods(mapdl, inp, nelem, rho):
     """Remodel material as per algorithm from Huiskes "family"
+    Implemented algorithms:
+    1 - Weinans1992, J. Biomechanics, Vol.25, No.12
 
     Parameters
     ----------
@@ -46,7 +48,7 @@ def huiskes_methods(mapdl, inp, nelem, rho):
         status = "Remodeling iteration " + str(i + 1) + " of " + str(inp.niter)
         print(status)
 
-        mapdl = solve_ansys(mapdl)
+        mapdl = solve_ansys(mapdl, inp)
         sed = get_sed(mapdl, nelem)
         rho, stimulus = calc_new_rho(inp, rho, sed, nelem)
         young = update_material(mapdl, inp, rho, nelem)
@@ -60,8 +62,10 @@ def huiskes_methods(mapdl, inp, nelem, rho):
     return mapdl, rho, young, stimulus
 
 
-def solve_ansys(mapdl):
+def solve_ansys(mapdl, inp):
     """Solve static analysis with Ansys and set solution to last step
+    Important: this function assumes that the elements to be remodeled
+    are all assigned to element type number '1'.
 
     Parameters
     ----------
@@ -74,11 +78,13 @@ def solve_ansys(mapdl):
         Updated main object containing ansys interface object
     """
 
+    mapdl.allsel()
     mapdl.slashsolu()
     mapdl.antype(0)
     mapdl.solve()
     mapdl.post1()
     mapdl.set("LAST")
+    mapdl.esel("S", "TYPE", "", inp.el_typ_number)
 
     return mapdl
 

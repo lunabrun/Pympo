@@ -13,12 +13,14 @@ import numpy as np
 from ansys.mapdl.core import launch_mapdl
 from ansys.mapdl.core.errors import LockFileException
 
+from pympo.remodeling.remodel import huiskes_methods
 from pympo.remodeling.remodel import solve_ansys
 from pympo.remodeling.remodel import get_sed
 from pympo.remodeling.remodel import update_material
 
 # Constants as reference for tests
 N_ELEM = 130
+EL_TYP_NUMBER = 1
 RHO = 5.0 * np.ones(N_ELEM)
 
 
@@ -29,6 +31,8 @@ class Inp:
 
 # Input structures for tests
 inp1 = Inp()
+inp1.niter = 1
+inp1.el_typ_number = EL_TYP_NUMBER
 inp1.CC = 100.0
 inp1.GC = 2.0
 inp1.K = 1.0
@@ -92,16 +96,44 @@ def solve_sed_benchmark(mapdl):
     mapdl.solve()
     mapdl.post1()
     mapdl.set("LAST")
-    mapdl.esel("S", "MAT", "", 1)
+    mapdl.esel("S", "TYPE", "", EL_TYP_NUMBER)
 
     return mapdl
 
 
 @pytest.mark.slow
+def test_huiskes_methods_regular(load_mapdl):
+    mapdl_sed_benchmark = run_sed_benchmark(load_mapdl)
+    mapdl_sed_benchmark, rho_new, young_new, stimulus = huiskes_methods(
+        mapdl_sed_benchmark, inp1, N_ELEM, RHO
+    )
+
+    assert (
+        np.allclose(
+            rho_new,
+            2.0,
+            rtol=1e-05,
+            atol=1e-08,
+        )
+        and np.allclose(
+            young_new,
+            400.0,
+            rtol=1e-05,
+            atol=1e-08,
+        )
+        and np.allclose(
+            stimulus,
+            0.0542,
+            rtol=0.0,
+            atol=1e-04,
+        )
+    )
+
+
+@pytest.mark.slow
 def test_solve_ansys_regular(load_mapdl):
     mapdl_sed_benchmark = run_sed_benchmark(load_mapdl)
-    mapdl_sed_benchmark = solve_ansys(mapdl_sed_benchmark)
-    mapdl_sed_benchmark.esel("S", "MAT", "", 1)
+    mapdl_sed_benchmark = solve_ansys(mapdl_sed_benchmark, inp1)
 
     # Normal stress in transverse direction
     s_z = mapdl_sed_benchmark.post_processing.element_values("S", "Z")

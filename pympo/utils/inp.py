@@ -20,6 +20,7 @@ mesh_refine = 2  # Global mesh refinement level (1(fine) ... 10(rough))
 dist_force = 10 / thickness  # Load (Force, vertical) (N/m)
 
 # Initial material parameters
+el_typ_number = 1  # APDL number for element type that will be remodeled
 rho_ini = 0.8  # Initial density of the plate material (bone) (kg*m^-3)
 poisson = 0.3  # Initial Poisson's ratio of the plates material (bone)
 
