@@ -1,6 +1,6 @@
 # Ignore everything in this directory,
 # as it is used by Ansys for writing results only
 *
-# Except this file
+# Except these files
 !.gitignore
 !SED_Benchmark.inp

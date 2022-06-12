@@ -13,6 +13,7 @@ def huiskes_methods(mapdl, inp, nelem, rho):
     """Remodel material as per algorithm from Huiskes "family"
     Implemented algorithms:
     1 - Weinans1992, J. Biomechanics, Vol.25, No.12
+    2 - Mullender1994, J. Biomechanics, Vol. 27, No.11 (Work-in-progress)
 
     Parameters
     ----------
@@ -233,8 +234,12 @@ def calc_delta_rho_local(stimulus, K, s, f_fac, r_fac):
     for var in [K, s, f_lim, r_lim, f_fac, r_fac]:
         check_if_float(var)
 
-    delta_rho[stimulus > f_lim] = f_fac * (stimulus[stimulus > f_lim] - f_lim)
-    delta_rho[stimulus < r_lim] = r_fac * (stimulus[stimulus < r_lim] - r_lim)
+    delta_rho[stimulus >= f_lim] = f_fac * (
+        stimulus[stimulus >= f_lim] - f_lim
+    )
+    delta_rho[stimulus <= r_lim] = r_fac * (
+        stimulus[stimulus <= r_lim] - r_lim
+    )
 
     # Check type of result
     check_if_num_numpy(delta_rho)
