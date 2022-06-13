@@ -1,13 +1,13 @@
 [tool.poetry]
 name = "pympo"
-version = "0.1.0"
+version = "0.2.0"
 description = "Finite Element Calculation of Dental Implants considering Metal Fatigue and Bone Remodeling"
 authors = ["lunabrun <102997688+lunabrun@users.noreply.github.com>"]
 license = "MIT"
 
 [tool.poetry.dependencies]
 python = "~3.9"
-ansys-mapdl-core = "^0.61.5"
+ansys-mapdl-core = "^0.62.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"

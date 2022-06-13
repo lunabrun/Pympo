@@ -71,7 +71,6 @@ mapdl, rho, young, stimulus = remodel.huiskes_methods(mapdl, inp, nelem, rho)
 post.plot_results(mapdl, rho, young, stimulus, "last", run_dir)
 
 # Finish mapdl
-mapdl.run(":ENDSCRIPT")
 mapdl.exit()
 
 # Finish time measure
