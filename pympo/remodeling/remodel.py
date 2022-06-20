@@ -5,6 +5,7 @@ Module to calculate remodeling of bone
 """
 
 import numpy as np
+from scipy.spatial import distance
 
 # import remodeling.post
 
@@ -321,6 +322,30 @@ def calc_young(rho, CC, GC):
     check_if_num_numpy(young)
 
     return young
+
+
+def calc_distance(v1, M1):
+    """Calculate distance between reference vectors v1
+    and a group of vectors presented as lines in a matrix M1
+    using the cdist function from the scipy package
+
+    Parameters
+    ----------
+    v1: float numpy array (defined as matrix with single line)
+        Numpy array of coordinates [x, y, z] of reference vector
+
+    M1: float numpy array/matrix (>=1)
+        Numpy array(s) of coordinates [x, y, z] of group of vectors
+
+    Returns
+    -------
+    dist: float numpy matrix
+        Numpy array(s) of distances between vector in v1 and vector(s) in M1
+    """
+
+    dist = distance.cdist(v1, M1, "euclidean")
+
+    return dist
 
 
 def check_if_num_numpy(array):

@@ -8,6 +8,8 @@ license = "MIT"
 [tool.poetry.dependencies]
 python = "~3.9"
 ansys-mapdl-core = "^0.62.1"
+numpy = "^1.22.4"
+scipy = "^1.8.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
