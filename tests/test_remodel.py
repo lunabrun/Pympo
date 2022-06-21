@@ -262,30 +262,39 @@ def test_calc_distance_regular(v1, M1, dist):
     assert np.allclose(calc_distance(v1, M1), dist)
 
 
-""" @pytest.mark.parametrize(
+@pytest.mark.parametrize(
     "v1, M1, exception",
     [
-        (1, "a", 1, TypeError),
-        ([2], 1, 1, TypeError),
-        (0, 1, [0], TypeError),
-        (-2.0, 1.0, -0.5, TypeError),
         (
-            np.asarray(["NaN", 2.0, 3.0]),
-            3.0,
-            2.0,
-            TypeError,
+            np.asarray([[2.0, 3.0, 4.0]]),
+            np.asarray([[5.0, 6.0, "NaN"]]),
+            ValueError,
         ),
         (
-            np.asarray([10.0, 1.2e8]),
-            np.asarray([15.0, 2.0e8]),
-            np.asarray([0.0, 2.0]),
-            TypeError,
+            np.asarray([[2.0, 3.0, 4.0]]),
+            np.asarray([[5.0, 6.0]]),
+            ValueError,
+        ),
+        (
+            np.asarray([[2.0]]),
+            np.asarray([[5.0, 6.0]]),
+            ValueError,
+        ),
+        (
+            np.asarray([2.0, 3.0, 4.0]),
+            np.asarray([[5.0, 6.0, 7.0]]),
+            ValueError,
+        ),
+        (
+            np.asarray([[2.0, 3.0, 4.0]]),
+            np.asarray("NaN"),
+            ValueError,
         ),
     ],
 )
 def test_calc_distance_exception(v1, M1, exception):
     with pytest.raises(exception):
-        calc_distance(v1, M1) """
+        calc_distance(v1, M1)
 
 
 @pytest.mark.parametrize(

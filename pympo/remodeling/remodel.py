@@ -345,6 +345,9 @@ def calc_distance(v1, M1):
 
     dist = distance.cdist(v1, M1, "euclidean")
 
+    # Check type of result
+    check_if_num_numpy(dist)
+
     return dist
 
 
