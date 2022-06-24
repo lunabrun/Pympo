@@ -252,6 +252,11 @@ def test_calc_young_exception(rho, cc, gc, exception):
             np.asarray([[5.19615]]),
         ),
         (
+            np.asarray([[1.86e-02, 9.00e-02, -8.35e-03]]),
+            np.asarray([[1.86e-02, 7.00e-02, -8.35e-03]]),
+            np.asarray([[0.020]]),
+        ),
+        (
             np.asarray([[1.0, 0.0, 0.0]]),
             np.asarray([[0.0, 0.0, 0.0], [1.0, 0.0, 0.0], [1.0, 1.0, 1.0]]),
             np.asarray([[1.0, 0.0, 1.41421]]),
