@@ -324,6 +324,44 @@ def calc_young(rho, CC, GC):
     return young
 
 
+def get_centroids(mapdl, nelem):
+    """Get coordinates of centroid for all elements
+
+    Parameters
+    ----------
+    mapdl: pyMAPDL object
+        Main object containing ansys interface object
+
+    nelem: integer
+        Number of elements in finite element mesh
+
+    Returns
+    -------
+    coord: float numpy array/matrix (>=1)
+        Numpy array(s) of coordinates [x, y, z] of group of vectors
+    """
+
+    # Get centroid coordinates for all selected elements (starting at 1)
+    mapdl.parameters["CX"] = np.zeros(nelem)
+    mapdl.parameters["CY"] = np.zeros(nelem)
+    mapdl.parameters["CZ"] = np.zeros(nelem)
+
+    mapdl.starvget("CX(1)", "ELEM", 1, "CENT", "X")
+    mapdl.starvget("CY(1)", "ELEM", 1, "CENT", "Y")
+    mapdl.starvget("CZ(1)", "ELEM", 1, "CENT", "Z")
+
+    # Convert parameters to numpy array
+    centroid = np.hstack(
+        (
+            mapdl.parameters["CX"],
+            mapdl.parameters["CY"],
+            mapdl.parameters["CZ"],
+        )
+    )
+
+    return centroid
+
+
 def calc_distance(v1, M1):
     """Calculate distance between reference vectors v1
     and a group of vectors presented as lines in a matrix M1

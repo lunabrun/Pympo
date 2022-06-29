@@ -17,6 +17,7 @@ from pympo.remodeling.remodel import huiskes_methods
 from pympo.remodeling.remodel import solve_ansys
 from pympo.remodeling.remodel import get_sed
 from pympo.remodeling.remodel import update_material
+from pympo.remodeling.remodel import get_centroids
 
 # Constants as reference for tests
 N_ELEM = 130
@@ -74,7 +75,6 @@ def load_mapdl():
     yield mapdl
 
     # Finish mapdl
-    mapdl.run(":ENDSCRIPT")
     mapdl.exit()
 
 
@@ -166,4 +166,22 @@ def test_update_material_regular(load_mapdl):
         2500.0,
         rtol=1e-05,
         atol=1e-08,
+    )
+
+
+@pytest.mark.slow
+def test_get_centroids_regular(load_mapdl):
+    mapdl_sed_benchmark = run_sed_benchmark(load_mapdl)
+    mapdl_sed_benchmark = solve_sed_benchmark(mapdl_sed_benchmark)
+
+    # Mute to avoid pymapdl error while parsing mapdl parameters
+    mapdl_sed_benchmark.mute = False
+    centroid = get_centroids(mapdl_sed_benchmark, N_ELEM)
+    mapdl_sed_benchmark.mute = True
+    assert np.allclose(
+        centroid[0][:],
+        np.asarray([1.86388565115e-02, 9.00e-02, -8.34845624295e-03]),
+    ) and np.allclose(
+        centroid[1][:],
+        np.asarray([1.86388565115e-02, 7.00e-02, -8.34845624295e-03]),
     )

@@ -45,6 +45,9 @@ def ini_rho(mapdl, inp):
         Parameter list containing all input variables
     """
     # Vectors creation for element related fields
+    # TODO: For generalization,
+    # n_elem should consider only relevant elements for remodeling!
+    # Check use of mapdl.db.elems + elems.num(selected=True)
     nelem = mapdl.mesh.n_elem
     rho = np.zeros(nelem)
 
