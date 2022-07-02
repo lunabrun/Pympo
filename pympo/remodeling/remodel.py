@@ -386,6 +386,7 @@ def calc_distance(v1, M1):
     -------
     dist: float numpy array
         Numpy array of distances between vector in v1 and vector(s) in M1
+        Used for distance between center of element (v1) and sensors (M1)
     """
 
     dist = distance.cdist(v1, M1, "euclidean")
@@ -407,11 +408,12 @@ def spatial_influence(inp, dist):
 
     dist: float numpy array
         Numpy array of distances between vector in v1 and vector(s) in M1
+        Used for distance between center of element (v1) and sensors (M1)
 
     Returns
     -------
-    f: float numpy matrix
-        Numpy array(s) of distances between vector in v1 and vector(s) in M1
+    f: float numpy array
+        Numpy array of sensor-wise spatial influence function value
     """
 
     D = inp.D
@@ -433,6 +435,34 @@ def spatial_influence(inp, dist):
         )
 
     return f
+
+
+def calc_spatial_stimulus(f, stimulus, K):
+    """Calculate stimulus considering spatial (used as per Mullender1994)
+
+    Parameters
+    ----------
+    f: float numpy array
+        Numpy array of sensor-wise spatial influence function value
+
+    stimulus: float numpy array
+        Numpy array of sensor-wise stimulus for comparison with reference
+
+    K: float
+        Setpoint for Strain Energy Density (SED)
+
+    Returns
+    -------
+    phi: float
+        Spatial influence stimulus value calculated for one element
+    """
+
+    phi = np.sum(f * (stimulus - K))
+
+    # Check type of result
+    check_if_float(phi)
+
+    return phi
 
 
 def check_if_num_numpy(array):

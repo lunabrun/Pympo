@@ -14,6 +14,7 @@ from pympo.remodeling.remodel import calc_delta_rho_local
 from pympo.remodeling.remodel import calc_young
 from pympo.remodeling.remodel import calc_distance
 from pympo.remodeling.remodel import spatial_influence
+from pympo.remodeling.remodel import calc_spatial_stimulus
 from pympo.remodeling.remodel import check_if_num_numpy
 from pympo.remodeling.remodel import check_if_float
 
@@ -315,7 +316,7 @@ def test_calc_distance_exception(v1, M1, exception):
         ),
     ],
 )
-def test_spatial_influence(inp, dist, f):
+def test_spatial_influence_regular(inp, dist, f):
     assert np.allclose(spatial_influence(inp, dist), f)
 
 
@@ -330,13 +331,41 @@ def test_spatial_influence(inp, dist, f):
         (
             inp2,
             np.asarray([[1.0, 0.0, 1.41421]]),
-            ValueError,  # Division by zero (inp2.D)!
+            ValueError,
         ),
     ],
 )
 def test_spatial_influence_exception(inp, dist, exception):
     with pytest.raises(exception):
         spatial_influence(inp, dist)
+
+
+@pytest.mark.parametrize(
+    "f, stimulus, K, phi",
+    [
+        (np.asarray([[2, 3, 0]]), np.asarray([[5, 2, 4]]), inp1.K, 11.0),
+    ],
+)
+def test_calc_spatial_stimulus_regular(f, stimulus, K, phi):
+    assert np.allclose(calc_spatial_stimulus(f, stimulus, K), phi)
+
+
+@pytest.mark.parametrize(
+    "f, stimulus, K, exception",
+    [
+        (np.asarray([[2, 3, 0]]), np.asarray([[5, 2]]), inp1.K, ValueError),
+        (np.asarray([[2, 3]]), np.asarray([[5, 2, 4]]), inp1.K, ValueError),
+        (
+            np.asarray([[2, 3, 0]]),
+            np.asarray([[5, 2, "NaN"]]),
+            inp1.K,
+            np.core._exceptions.UFuncTypeError,
+        ),
+    ],
+)
+def test_calc_spatial_stimulus_exception(f, stimulus, K, exception):
+    with pytest.raises(exception):
+        calc_spatial_stimulus(f, stimulus, K)
 
 
 @pytest.mark.parametrize(
