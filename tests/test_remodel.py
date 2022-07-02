@@ -13,6 +13,7 @@ from pympo.remodeling.remodel import calc_stimulus
 from pympo.remodeling.remodel import calc_delta_rho_local
 from pympo.remodeling.remodel import calc_young
 from pympo.remodeling.remodel import calc_distance
+from pympo.remodeling.remodel import spatial_influence
 from pympo.remodeling.remodel import check_if_num_numpy
 from pympo.remodeling.remodel import check_if_float
 
@@ -43,6 +44,7 @@ inp1.f_fac = 1.0
 inp1.r_fac = 1.0
 inp1.rho_min = 0.01
 inp1.rho_max = 2.0
+inp1.D = 0.025
 
 inp2 = Inp()
 inp2.K = inp1.K
@@ -51,6 +53,7 @@ inp2.f_fac = inp1.f_fac
 inp2.r_fac = inp1.r_fac
 inp2.rho_min = inp1.rho_min
 inp2.rho_max = inp1.rho_max
+inp2.D = -0.025
 
 
 @pytest.mark.parametrize(
@@ -300,6 +303,40 @@ def test_calc_distance_regular(v1, M1, dist):
 def test_calc_distance_exception(v1, M1, exception):
     with pytest.raises(exception):
         calc_distance(v1, M1)
+
+
+@pytest.mark.parametrize(
+    "inp, dist, f",
+    [
+        (
+            inp1,
+            np.asarray([[1.0, 0.0, 1.41421]]),
+            np.asarray([[4.24835426e-18, 1.0e00, 2.70804595e-25]]),
+        ),
+    ],
+)
+def test_spatial_influence(inp, dist, f):
+    assert np.allclose(spatial_influence(inp, dist), f)
+
+
+@pytest.mark.parametrize(
+    "inp, dist, exception",
+    [
+        (
+            inp1,
+            np.asarray([["NaN", 0.0, 1.41421]]),
+            TypeError,
+        ),
+        (
+            inp2,
+            np.asarray([[1.0, 0.0, 1.41421]]),
+            ValueError,  # Division by zero (inp2.D)!
+        ),
+    ],
+)
+def test_spatial_influence_exception(inp, dist, exception):
+    with pytest.raises(exception):
+        spatial_influence(inp, dist)
 
 
 @pytest.mark.parametrize(

@@ -66,13 +66,17 @@ def huiskes_methods(mapdl, inp, nelem, rho):
 
 def solve_ansys(mapdl, inp):
     """Solve static analysis with Ansys and set solution to last step
-    Important: this function assumes that the elements to be remodeled
-    are all assigned to element type number '1'.
+    Important: this function assumes that the elements assigned to
+    element type number "el_typ_number" are to be remodeled.
 
     Parameters
     ----------
     mapdl: pyMAPDL object
         Main object containing ansys interface object
+
+    inp: input module file
+        Parameter list containing all input variables
+        APDL number ("el_typ_number") for remodeled elements is used
 
     Returns
     -------
@@ -123,6 +127,8 @@ def calc_new_rho(inp, rho, sed, nelem):
     ----------
     inp: input module file
         Parameter list containing all input variables
+        Huskies methods parameters (K, s, f_fac ,r_fac, rho_min, rho_max)
+        are used.
 
     rho: float numpy array
         Numpy array of element-wise density
@@ -258,6 +264,7 @@ def update_material(mapdl, inp, rho, nelem):
 
     inp: input module file
         Parameter list containing all input variables
+        Constants "CC" and "GC" for Currey's function are used
 
     rho: float numpy array
         Numpy array of element-wise density
@@ -377,8 +384,8 @@ def calc_distance(v1, M1):
 
     Returns
     -------
-    dist: float numpy matrix
-        Numpy array(s) of distances between vector in v1 and vector(s) in M1
+    dist: float numpy array
+        Numpy array of distances between vector in v1 and vector(s) in M1
     """
 
     dist = distance.cdist(v1, M1, "euclidean")
@@ -387,6 +394,45 @@ def calc_distance(v1, M1):
     check_if_num_numpy(dist)
 
     return dist
+
+
+def spatial_influence(inp, dist):
+    """Calculate spatial influence function acc. to Mullender1994
+
+    Parameters
+    ----------
+    inp: input module file
+        Parameter list containing all input variables
+        Sensor influence parameter "D" (float or int) is used
+
+    dist: float numpy array
+        Numpy array of distances between vector in v1 and vector(s) in M1
+
+    Returns
+    -------
+    f: float numpy matrix
+        Numpy array(s) of distances between vector in v1 and vector(s) in M1
+    """
+
+    D = inp.D
+
+    # Check signal of sensor influence parameter
+    if D <= 0.0:
+        raise ValueError(
+            "Sensor influence factor must be positive, check input " "D" "."
+        )
+
+    # Calculate spatial influence
+    f = np.exp(-dist / D)
+
+    # Check type of result
+    check_if_num_numpy(f)
+    if np.any(f < 0):
+        raise ValueError(
+            "Spatial influence can not be negative, check input variables."
+        )
+
+    return f
 
 
 def check_if_num_numpy(array):

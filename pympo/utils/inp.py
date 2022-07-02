@@ -29,13 +29,14 @@ CC = 100.0  # Constant in Currey's function (Pa/((kg*m^-3)^2))
 GC = 2.0  # Constant in Currey's function (adim)
 young_ini = CC * (rho_ini**GC)  # Initial Young's modulus of the bone
 
-# Remodeling function parameters
+# Huskies methods remodeling function parameters (see Weinans1992)
 K = 0.25  # Setpoint for Strain Energy Density (SED) (J/kg)
 s = 0.0  # 'Lazy Zone' breadth (threshold)
 f_fac = 1.0  # Slope of the bone formation function
 r_fac = 1.0  # Slope of the bone resorption function
 rho_min = 0.01  # Minimal allowed density
 rho_max = 1.740  # Maximum allowed density
+D = 0.025  # Sensor influence parameter (see Mullender1994)
 
 # Program flow parameters
 out_dir = "/pympo/ansys_tmp"
